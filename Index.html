@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zoiudo">
+<meta name="theme-color" content="#0b0d10">
+<title>Zoiudo Contábil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0d10; --surface:#13161d; --surface2:#1a1e28; --surface3:#20253200;
+  --border:#252b3a; --border2:#2f374a;
+  --accent:#7fff6e; --accent2:#4fc3f7; --accent3:#ffb347;
+  --text:#e4e8f0; --text2:#7a8599; --text3:#4a5568;
+  --red:#ff4f4f; --green:#5df0a0; --blue:#4fc3f7; --purple:#b57bee; --orange:#ffb347;
+  --radius:16px; --radius-sm:10px; --radius-xs:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column}
+#app{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:88px;scroll-behavior:smooth}
+#app::-webkit-scrollbar{display:none}
+
+/* HEADER */
+.header{padding:18px 20px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:38px;height:38px;flex-shrink:0}
+.logo-text .t1{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:-0.3px;color:var(--text)}
+.logo-text .t2{font-family:'Syne',sans-serif;font-weight:600;font-size:11px;color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+.month-nav{display:flex;align-items:center;gap:6px}
+.month-nav button{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.month-label{font-size:12px;font-weight:500;color:var(--text2);min-width:82px;text-align:center;font-family:'DM Mono',monospace}
+
+/* HERO */
+.hero-card{margin:14px 16px 0;background:linear-gradient(140deg,#0e1f0e 0%,#0b1420 55%,#130d1f 100%);border:1px solid #263226;border-radius:22px;padding:22px 22px 18px;position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:radial-gradient(circle,rgba(127,255,110,.1) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.hero-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.hero-amount{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;letter-spacing:-1.5px;color:var(--accent);line-height:1}
+.hero-amount.neg{color:var(--red)}
+.hero-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.hero-item .lbl{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:3px}
+.hero-item .val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
+.val.inc{color:var(--green)} .val.exp{color:var(--red)}
+.progress-wrap{margin-top:14px}
+.progress-info{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:5px}
+.progress-track{background:rgba(255,255,255,.07);border-radius:4px;height:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .5s ease,background .3s}
+
+/* SECTION TITLE */
+.section-title{display:flex;justify-content:space-between;align-items:center;padding:20px 16px 10px}
+.section-title h2{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text2)}
+.btn-sm{background:var(--accent);color:#0b0d10;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-sm-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* BANK CARDS SCROLL */
+.bank-scroll{display:flex;gap:12px;padding:0 16px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.bank-scroll::-webkit-scrollbar{display:none}
+.bank-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:16px;min-width:180px;flex-shrink:0;cursor:pointer;transition:border-color .2s,transform .15s;position:relative}
+.bank-card:active{transform:scale(.97)}
+.bank-card.active-bank{border-color:var(--accent)}
+.bank-card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bank-icon-wrap{width:38px;height:38px;background:var(--surface2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.bank-card-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
+.bank-card-total-lbl{font-size:9px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
+.bank-card-total{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--accent)}
+.bank-sub-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.sub-chip{font-size:9px;font-weight:600;border-radius:4px;padding:2px 6px;letter-spacing:.3px}
+.sub-chip.bank{background:rgba(79,195,247,.15);color:var(--blue)}
+.sub-chip.cc{background:rgba(255,179,71,.18);color:var(--orange)}
+.sub-chip.inv{background:rgba(127,255,110,.15);color:var(--accent)}
+.sub-chip.cash{background:rgba(181,123,238,.15);color:var(--purple)}
+.add-bank-card{background:transparent;border:1.5px dashed var(--border);border-radius:18px;padding:16px;min-width:120px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text2);font-size:10px;font-weight:500}
+.add-bank-card:active{border-color:var(--accent)}
+
+/* TOTAL PATRIMÔNIO CARD */
+.patrimonio-card{margin:0 16px 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.patrimonio-row{display:flex;align-items:center;justify-content:space-between}
+.patrimonio-lbl{font-size:10px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase}
+.patrimonio-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--text)}
+.patrimonio-breakdown{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.pat-item .lbl{font-size:9px;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
+.pat-item .val{font-family:'DM Mono',monospace;font-size:13px;margin-top:2px}
+
+/* BANK DETAIL VIEW */
+.bank-detail{margin:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.bank-detail-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.bank-detail-title{display:flex;align-items:center;gap:10px}
+.bank-detail-name{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.subaccount-list{padding:0}
+.subaccount-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.subaccount-row:last-child{border-bottom:none}
+.subaccount-row:active{background:var(--surface2)}
+.sub-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sub-icon.bank{background:rgba(79,195,247,.12)}
+.sub-icon.cc{background:rgba(255,179,71,.12)}
+.sub-icon.inv{background:rgba(127,255,110,.1)}
+.sub-icon.cash{background:rgba(181,123,238,.12)}
+.sub-info{flex:1;min-width:0}
+.sub-name{font-size:14px;font-weight:500}
+.sub-meta{font-size:10px;color:var(--text2);margin-top:1px}
+.sub-balance{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;text-align:right}
+.sub-balance.pos{color:var(--green)}
+.sub-balance.neg{color:var(--red)}
+.sub-balance.acc{color:var(--blue)}
+.sub-balance.inv-col{color:var(--accent)}
+.sub-balance.cash-col{color:var(--purple)}
+.add-sub-row{padding:10px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;border-top:1px solid var(--border)}
+.add-sub-row:active{background:var(--surface2)}
+
+/* CC LIMIT BAR */
+.cc-limit-mini{margin-top:3px;display:flex;align-items:center;gap:6px}
+.cc-mini-bar{flex:1;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;max-width:80px}
+.cc-mini-fill{height:100%;border-radius:2px}
+.cc-mini-pct{font-size:9px;color:var(--text2)}
+
+/* FILTER + SEARCH */
+.filter-bar{display:flex;gap:8px;padding:0 16px;overflow-x:auto;scrollbar-width:none;margin-bottom:4px}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--text2);flex-shrink:0}
+.filter-chip.active{background:var(--accent);color:#0b0d10;border-color:var(--accent)}
+.search-wrap{padding:0 16px 8px;position:relative}
+.search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px 10px 36px;outline:none}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:28px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
+
+/* TX LIST */
+.tx-list{padding:0 16px}
+.divider-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:12px 0 6px}
+.tx-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.tx-item:last-child{border-bottom:none}
+.tx-item:active{opacity:.7}
+.tx-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.tx-icon.type-expense{background:rgba(255,79,79,.12)}
+.tx-icon.type-income{background:rgba(93,240,160,.1)}
+.tx-icon.type-transfer{background:rgba(79,195,247,.12)}
+.tx-icon.type-investment{background:rgba(127,255,110,.1)}
+.tx-icon.type-withdrawal{background:rgba(181,123,238,.12)}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-meta{font-size:10px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tx-cat{background:var(--surface2);border-radius:3px;padding:1px 5px;font-size:9px}
+.tx-recur{background:rgba(79,195,247,.15);color:var(--blue);border-radius:3px;padding:1px 5px;font-size:9px}
+.tx-amount{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;flex-shrink:0;text-align:right}
+.tx-amount.pos{color:var(--green)} .tx-amount.neg{color:var(--red)} .tx-amount.neu{color:var(--blue)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty-state .emoji{font-size:36px;margin-bottom:10px}
+.empty-state p{font-size:13px}
+
+/* BOTTOM NAV */
+.bottom-nav{background:rgba(11,13,16,.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex-shrink:0;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;color:var(--text2);border:none;background:none;font-family:'DM Sans',sans-serif}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:9px;font-weight:600;letter-spacing:.5px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:24px 24px 0 0;border:1px solid var(--border);border-bottom:none;width:100%;padding:20px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.4,.64,1);max-height:92dvh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:-4px auto 16px}
+.modal h3{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:18px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;padding:11px 13px;outline:none;-webkit-appearance:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.type-btn{padding:10px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-align:center;line-height:1.3}
+.type-btn .tb-icon{font-size:16px;display:block;margin-bottom:3px}
+.type-btn.sel-expense{border-color:var(--red);color:var(--red);background:rgba(255,79,79,.08)}
+.type-btn.sel-income{border-color:var(--green);color:var(--green);background:rgba(93,240,160,.08)}
+.type-btn.sel-transfer{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,.08)}
+.type-btn.sel-investment{border-color:var(--accent);color:var(--accent);background:rgba(127,255,110,.08)}
+.type-btn.sel-withdrawal{border-color:var(--purple);color:var(--purple);background:rgba(181,123,238,.08)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:var(--radius-sm);padding:11px 13px;border:1.5px solid var(--border)}
+.toggle-row span{font-size:14px;color:var(--text)}
+.toggle{width:44px;height:24px;background:var(--border2);border-radius:12px;position:relative;cursor:pointer;flex-shrink:0;border:none}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle.on::after{left:23px}
+.btn-primary{width:100%;background:var(--accent);color:#0b0d10;border:none;border-radius:var(--radius-sm);padding:15px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.btn-primary:active{opacity:.8}
+.btn-danger{width:100%;background:transparent;color:var(--red);border:1.5px solid var(--red);border-radius:var(--radius-sm);padding:13px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+.btn-ghost{width:100%;background:none;border:none;color:var(--text2);padding:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;margin-top:2px}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:14px}
+.emoji-btn{background:var(--surface2);border:1.5px solid transparent;border-radius:7px;font-size:18px;padding:5px;cursor:pointer;text-align:center}
+.emoji-btn.selected{border-color:var(--accent)}
+.section-sep{height:1px;background:var(--border);margin:10px 0}
+.form-section-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;margin-top:4px}
+
+/* ANALYTICS */
+.a-page{padding:0 16px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-lbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text2);margin-bottom:5px}
+.stat-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:500}
+.stat-sub{font-size:10px;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.chart-title{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text2);margin-bottom:14px}
+.legend{display:flex;gap:14px;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2)}
+.legend-dot{width:7px;height:7px;border-radius:50%}
+.bar-chart{display:flex;gap:6px;align-items:flex-end;height:90px}
+.bar-group{flex:1;display:flex;gap:2px;align-items:flex-end}
+.bar{flex:1;border-radius:3px 3px 0 0;min-height:3px}
+.bar.inc-bar{background:var(--green)}
+.bar.exp-bar{background:var(--red);opacity:.8}
+.bar-labels{display:flex;gap:6px;margin-top:6px}
+.bar-label{flex:1;text-align:center;font-size:8px;color:var(--text2);font-family:'DM Mono',monospace}
+.cat-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cat-row:last-child{margin-bottom:0}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cat-name{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-bar-track{width:70px;height:5px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:2px}
+.cat-pct{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);width:28px;text-align:right}
+.cat-val{font-family:'DM Mono',monospace;font-size:11px;width:68px;text-align:right}
+
+/* PAGE */
+.page{display:none}
+.page.active{display:block}
+
+/* TOAST */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:9px 16px;font-size:12px;font-weight:500;opacity:0;transition:all .3s;z-index:400;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* BANK SELECTOR IN TX */
+.bank-selector{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.bank-selector::-webkit-scrollbar{display:none}
+.bank-sel-chip{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;color:var(--text2)}
+.bank-sel-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(127,255,110,.08)}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <!-- KEROPPI LOGO SVG - minimalista, olhos grandes -->
+    <svg class="logo-mark" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- corpo redondo -->
+      <ellipse cx="19" cy="24" rx="12" ry="9" fill="#1c3d1a"/>
+      <!-- cabeça grande e redonda -->
+      <circle cx="19" cy="17" r="12" fill="#2d6e28"/>
+      <!-- orelhas pontudas tipo Keroppi -->
+      <ellipse cx="8" cy="11" rx="4" ry="3" fill="#2d6e28"/>
+      <ellipse cx="30" cy="11" rx="4" ry="3" fill="#2d6e28"/>
+      <!-- olhos ENORMES brancos (característica do Keroppi) -->
+      <ellipse cx="14" cy="15" rx="5.5" ry="6" fill="white"/>
+      <ellipse cx="24" cy="15" rx="5.5" ry="6" fill="white"/>
+      <!-- pupilas pretas -->
+      <circle cx="14" cy="16" r="3.8" fill="#111"/>
+      <circle cx="24" cy="16" r="3.8" fill="#111"/>
+      <!-- reflexo nos olhos -->
+      <circle cx="15.2" cy="14.5" r="1.4" fill="white"/>
+      <circle cx="25.2" cy="14.5" r="1.4" fill="white"/>
+      <!-- íris verde brilhante -->
+      <circle cx="14" cy="16.5" r="1.5" fill="#7fff6e" opacity=".7"/>
+      <circle cx="24" cy="16.5" r="1.5" fill="#7fff6e" opacity=".7"/>
+      <!-- nariz pequeno -->
+      <ellipse cx="19" cy="21" rx="2" ry="1.2" fill="#1c3d1a"/>
+      <!-- boca sorridente estilo Keroppi -->
+      <path d="M14.5 23.5 Q19 27.5 23.5 23.5" stroke="#7fff6e" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- bochechas rosadas -->
+      <circle cx="11" cy="21" r="2.5" fill="#ff8fa3" opacity=".35"/>
+      <circle cx="27" cy="21" r="2.5" fill="#ff8fa3" opacity=".35"/>
+    </svg>
+    <div class="logo-text">
+      <div class="t1">Zoiudo</div>
+      <div class="t2">Contábil</div>
+    </div>
+  </div>
+  <div class="month-nav">
+    <button onclick="changeMonth(-1)">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button onclick="changeMonth(1)">›</button>
+  </div>
+</div>
+
+<!-- PAGE: INÍCIO -->
+<div id="page-home" class="page active">
+
+  <!-- HERO SALDO DO MÊS -->
+  <div class="hero-card">
+    <div class="hero-label">Saldo do Mês</div>
+    <div class="hero-amount" id="heroBalance">R$ 0,00</div>
+    <div class="hero-row">
+      <div class="hero-item"><div class="lbl">Entradas</div><div class="val inc" id="heroIncome">R$ 0,00</div></div>
+      <div class="hero-item"><div class="lbl">Saídas</div><div class="val exp" id="heroExpense">R$ 0,00</div></div>
+      <div class="hero-item"><div class="lbl">Investido</div><div class="val" style="color:var(--accent)" id="heroInvested">R$ 0,00</div></div>
+      <div class="hero-item"><div class="lbl">Cartões</div><div class="val" style="color:var(--orange)" id="heroCCTotal">R$ 0,00</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info"><span>Gastos vs Entradas</span><span id="budgetPct">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="budgetBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- PATRIMÔNIO TOTAL -->
+  <div style="margin:14px 16px 0">
+    <div class="patrimonio-card">
+      <div class="patrimonio-row">
+        <div>
+          <div class="patrimonio-lbl">Patrimônio Total</div>
+          <div class="patrimonio-val" id="patrimonioTotal">R$ 0,00</div>
+        </div>
+        <div style="text-align:right">
+          <div class="patrimonio-lbl">Investimentos</div>
+          <div style="font-family:'DM Mono',monospace;font-size:16px;color:var(--accent)" id="patrimonioInv">R$ 0,00</div>
+        </div>
+      </div>
+      <div class="patrimonio-breakdown" id="patrimonioBkd"></div>
+    </div>
+  </div>
+
+  <!-- BANCOS -->
+  <div class="section-title">
+    <h2>Meus Bancos</h2>
+    <button class="btn-sm" onclick="openModal('bankModal')">+ Banco</button>
+  </div>
+  <div class="bank-scroll" id="bankScroll">
+    <div class="add-bank-card" onclick="openModal('bankModal')">
+      <span style="font-size:26px">🏦</span>
+      <span>Adicionar Banco</span>
+    </div>
+  </div>
+
+  <!-- DETALHE DO BANCO SELECIONADO -->
+  <div id="bankDetailWrap" style="display:none;margin-top:14px">
+    <div class="bank-detail" id="bankDetail"></div>
+  </div>
+
+  <!-- LANÇAMENTOS -->
+  <div class="section-title" style="padding-bottom:6px">
+    <h2>Lançamentos</h2>
+    <button class="btn-sm" onclick="openModal('txModal')">+ Novo</button>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar lançamentos…" oninput="render()">
+  </div>
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-chip active" data-filter="all" onclick="setFilter('all',this)">Todos</div>
+    <div class="filter-chip" data-filter="expense" onclick="setFilter('expense',this)">Gastos</div>
+    <div class="filter-chip" data-filter="income" onclick="setFilter('income',this)">Entradas</div>
+    <div class="filter-chip" data-filter="transfer" onclick="setFilter('transfer',this)">Transferências</div>
+    <div class="filter-chip" data-filter="investment" onclick="setFilter('investment',this)">Investimentos</div>
+    <div class="filter-chip" data-filter="withdrawal" onclick="setFilter('withdrawal',this)">Retiradas</div>
+  </div>
+  <div class="tx-list" id="txList"></div>
+</div>
+
+<!-- PAGE: ANALYTICS -->
+<div id="page-analytics" class="page">
+  <div class="section-title" style="padding-top:18px"><h2>Análise</h2></div>
+  <div class="a-page">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-lbl">Maior Gasto</div><div class="stat-val" id="statMaxExp" style="color:var(--red)">—</div><div class="stat-sub" id="statMaxExpName">—</div></div>
+      <div class="stat-card"><div class="stat-lbl">Maior Entrada</div><div class="stat-val" id="statMaxInc" style="color:var(--green)">—</div><div class="stat-sub" id="statMaxIncName">—</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-lbl">Total Investido</div><div class="stat-val" id="statInv" style="color:var(--accent)">—</div><div class="stat-sub">este mês</div></div>
+      <div class="stat-card"><div class="stat-lbl">Média Diária</div><div class="stat-val" id="statAvg" style="color:var(--orange)">—</div><div class="stat-sub">em gastos</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Fluxo — últimos 6 meses</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Entradas</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Saídas</div>
+      </div>
+      <div class="bar-chart" id="barChart"></div>
+      <div class="bar-labels" id="barLabels"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Gastos por Categoria</div>
+      <div id="catBreakdown"><div style="color:var(--text2);font-size:12px">Nenhum dado</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Patrimônio por Banco</div>
+      <div id="bankBreakdown"><div style="color:var(--text2);font-size:12px">Nenhum banco</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: BANCOS (detalhado) -->
+<div id="page-accounts" class="page">
+  <div class="section-title" style="padding-top:18px">
+    <h2>Bancos & Contas</h2>
+    <button class="btn-sm" onclick="openModal('bankModal')">+ Banco</button>
+  </div>
+  <div id="accountsPage" style="padding:0 16px"></div>
+</div>
+
+<!-- PAGE: INVESTIMENTOS -->
+<div id="page-investments" class="page">
+  <div class="section-title" style="padding-top:18px"><h2>Investimentos</h2></div>
+  <div style="padding:0 16px">
+    <div style="background:linear-gradient(135deg,#0e1f12,#0b1420);border:1px solid #203020;border-radius:var(--radius);padding:18px;margin-bottom:14px;text-align:center">
+      <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px">Total Investido</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:34px;color:var(--accent);letter-spacing:-1px" id="invTotal">R$ 0,00</div>
+    </div>
+    <div id="invList"><div class="empty-state"><div class="emoji">📈</div><p>Nenhum investimento registrado</p></div></div>
+  </div>
+</div>
+
+</div><!-- end #app -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="switchPage('home',this)"><span class="nav-icon">🏠</span><span class="nav-label">Início</span></button>
+  <button class="nav-item" onclick="switchPage('analytics',this)"><span class="nav-icon">📊</span><span class="nav-label">Análise</span></button>
+  <button class="nav-item" onclick="switchPage('accounts',this)"><span class="nav-icon">🏦</span><span class="nav-label">Contas</span></button>
+  <button class="nav-item" onclick="switchPage('investments',this)"><span class="nav-icon">📈</span><span class="nav-label">Invest.</span></button>
+  <button class="nav-item" onclick="openModal('txModal')"><span class="nav-icon">＋</span><span class="nav-label">Lançar</span></button>
+</div>
+
+<!-- ═══ MODAL: BANCO ═══ -->
+<div class="modal-overlay" id="bankModal" onclick="closeOnBg(event,'bankModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="bankModalTitle">Novo Banco</h3>
+    <div class="form-group">
+      <label>Ícone</label>
+      <div class="emoji-grid" id="bankEmojiGrid"></div>
+    </div>
+    <div class="form-group">
+      <label>Nome do Banco / Instituição</label>
+      <input type="text" id="bankName" placeholder="Ex: Nubank, Itaú, Inter…">
+    </div>
+    <button class="btn-primary" onclick="saveBank()">Salvar Banco</button>
+    <button class="btn-danger" id="btnDeleteBank" style="display:none" onclick="deleteBank()">Excluir Banco</button>
+    <button class="btn-ghost" onclick="closeModal('bankModal')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: SUB-CONTA ═══ -->
+<div class="modal-overlay" id="subModal" onclick="closeOnBg(event,'subModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="subModalTitle">Nova Sub-conta</h3>
+
+    <div class="form-group">
+      <label>Tipo</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="subTypeGrid">
+        <button class="type-btn" id="stBank" onclick="setSubType('bank')"><span class="tb-icon">🏦</span>Conta Bancária</button>
+        <button class="type-btn" id="stSavings" onclick="setSubType('savings')"><span class="tb-icon">🐷</span>Poupança</button>
+        <button class="type-btn" id="stCC" onclick="setSubType('cc')"><span class="tb-icon">💳</span>Cartão Crédito</button>
+        <button class="type-btn" id="stInv" onclick="setSubType('investment')"><span class="tb-icon">📈</span>Investimento</button>
+        <button class="type-btn" id="stCash" onclick="setSubType('cash')"><span class="tb-icon">💵</span>Dinheiro Físico</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nome (opcional)</label>
+      <input type="text" id="subName" placeholder="Ex: Conta corrente, Visa Platinum…">
+    </div>
+
+    <div class="form-group" id="subBalWrap">
+      <label id="subBalLbl">Saldo Atual (R$)</label>
+      <input type="number" id="subBalance" placeholder="0,00" inputmode="decimal" step="0.01">
+    </div>
+
+    <!-- CC EXTRAS -->
+    <div id="subCCExtras" style="display:none">
+      <div class="form-group">
+        <label>Limite Total (R$)</label>
+        <input type="number" id="subLimit" placeholder="0,00" inputmode="decimal" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Fatura Atual (R$)</label>
+        <input type="number" id="subCCBal" placeholder="0,00" inputmode="decimal" step="0.01">
+      </div>
+    </div>
+
+    <!-- INV EXTRAS -->
+    <div id="subInvExtras" style="display:none">
+      <div class="form-group">
+        <label>Tipo de Investimento</label>
+        <select id="subInvType">
+          <option value="CDB">CDB</option>
+          <option value="Tesouro Direto">Tesouro Direto</option>
+          <option value="Renda Fixa">Renda Fixa</option>
+          <option value="Ações">Ações</option>
+          <option value="FII">FII</option>
+          <option value="Crypto">Crypto</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveSubAccount()">Salvar</button>
+    <button class="btn-danger" id="btnDeleteSub" style="display:none" onclick="deleteSubAccount()">Excluir</button>
+    <button class="btn-ghost" onclick="closeModal('subModal')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: TRANSAÇÃO ═══ -->
+<div class="modal-overlay" id="txModal" onclick="closeOnBg(event,'txModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="txModalTitle">Novo Lançamento</h3>
+
+    <div class="form-group">
+      <label>Tipo</label>
+      <div class="type-grid">
+        <button class="type-btn" id="tbExpense" onclick="setTxType('expense')"><span class="tb-icon">⬇️</span>Gasto</button>
+        <button class="type-btn" id="tbIncome" onclick="setTxType('income')"><span class="tb-icon">⬆️</span>Entrada</button>
+        <button class="type-btn" id="tbTransfer" onclick="setTxType('transfer')"><span class="tb-icon">↔️</span>Transferência</button>
+        <button class="type-btn" id="tbInvestment" onclick="setTxType('investment')"><span class="tb-icon">📈</span>Investimento</button>
+        <button class="type-btn" id="tbWithdrawal" onclick="setTxType('withdrawal')"><span class="tb-icon">💸</span>Retirada</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nome / Descrição</label>
+      <input type="text" id="txName" placeholder="Ex: Uber, Salário, Nubank…" list="txNameSuggestions">
+      <datalist id="txNameSuggestions"></datalist>
+    </div>
+
+    <div class="form-group">
+      <label>Valor (R$)</label>
+      <input type="number" id="txAmount" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
+    </div>
+
+    <div class="form-group">
+      <label>Categoria</label>
+      <select id="txCategory">
+        <optgroup label="Gastos">
+          <option value="🍔 Alimentação">🍔 Alimentação</option>
+          <option value="🏠 Moradia">🏠 Moradia</option>
+          <option value="🚗 Transporte">🚗 Transporte</option>
+          <option value="💊 Saúde">💊 Saúde</option>
+          <option value="🎓 Educação">🎓 Educação</option>
+          <option value="🎭 Lazer">🎭 Lazer</option>
+          <option value="👕 Vestuário">👕 Vestuário</option>
+          <option value="💡 Contas Fixas">💡 Contas Fixas</option>
+          <option value="📦 Assinaturas">📦 Assinaturas</option>
+        </optgroup>
+        <optgroup label="Entradas">
+          <option value="💼 Salário">💼 Salário</option>
+          <option value="👨‍👩‍👧 Pensão">👨‍👩‍👧 Pensão</option>
+          <option value="🎁 Presente">🎁 Presente</option>
+          <option value="💹 Rendimento">💹 Rendimento</option>
+        </optgroup>
+        <optgroup label="Outros">
+          <option value="↔️ Transferência">↔️ Transferência</option>
+          <option value="📈 Investimento">📈 Investimento</option>
+          <option value="💸 Retirada">💸 Retirada</option>
+          <option value="💰 Outros">💰 Outros</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="form-group" id="txBankWrap">
+      <label>Banco Origem</label>
+      <div class="bank-selector" id="txBankSelector"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Conta Origem</label>
+      <select id="txAccount"><option value="">— Sem conta —</option></select>
+    </div>
+
+    <div class="form-group" id="toAccountWrap" style="display:none">
+      <label>Conta Destino</label>
+      <select id="txAccountTo"><option value="">— Sem conta —</option></select>
+    </div>
+
+    <div class="form-group">
+      <label>Data</label>
+      <input type="date" id="txDate">
+    </div>
+
+    <div id="recurWrap" style="display:none">
+      <div class="form-group">
+        <div class="toggle-row">
+          <span>🔁 Entrada recorrente (mensal)</span>
+          <button class="toggle" id="recurToggle" onclick="toggleRecur()"></button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveTx()">Salvar Lançamento</button>
+    <button class="btn-danger" id="btnDeleteTx" style="display:none" onclick="deleteTx()">Excluir Lançamento</button>
+    <button class="btn-ghost" onclick="closeModal('txModal')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ STATE ═══
+let S = {
+  banks: [],        // {id, name, icon, subAccounts:[{id,type,name,balance,limit?,invType?}]}
+  transactions: [], // {id,type,name,amount,category,bankId,subAccountId,bankToId?,subAccountToId?,date,month,recurrent?}
+  currentMonth: new Date().getMonth(),
+  currentYear: new Date().getFullYear(),
+};
+
+let editingBankId = null;
+let editingSubId = null;
+let editingSubBankId = null;
+let editingTxId = null;
+let txType = 'expense';
+let subType = 'bank';
+let txRecur = false;
+let selectedBankEmoji = '🏦';
+let selectedBankIdForDetail = null;
+let selectedTxBankId = null;
+let activeFilter = 'all';
+
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const BANK_EMOJIS = ['🏦','💳','💰','🏧','📱','🐷','💼','🏠','🌟','🎯','💎','📊','🔐','🌈','🏛️','🌿','🔑','💡','🪙','🎪','🍀','⚡','🦊','🐸'];
+const CAT_COLORS = {
+  '🍔 Alimentação':'#ff7b54','🏠 Moradia':'#4fc3f7','🚗 Transporte':'#c8f550',
+  '💊 Saúde':'#ff5252','🎓 Educação':'#ab47bc','🎭 Lazer':'#ffd54f',
+  '👕 Vestuário':'#26a69a','💡 Contas Fixas':'#ef5350','📦 Assinaturas':'#ff8a65',
+  '💼 Salário':'#69f0ae','👨‍👩‍👧 Pensão':'#80cbc4','💹 Rendimento':'#a5d6a7',
+  '🎁 Presente':'#f48fb1','↔️ Transferência':'#4fc3f7','📈 Investimento':'#b0bec5',
+  '💸 Retirada':'#ce93d8','💰 Outros':'#90a4ae'
+};
+const SUB_TYPE_LABELS = {bank:'Conta Corrente',savings:'Poupança',cc:'Cartão de Crédito',investment:'Investimento',cash:'Dinheiro'};
+const SUB_TYPE_ICONS = {bank:'🏦',savings:'🐷',cc:'💳',investment:'📈',cash:'💵'};
+
+// ═══ STORAGE ═══
+function save(){ localStorage.setItem('zoiudo_v3', JSON.stringify(S)); }
+function load(){
+  const d = localStorage.getItem('zoiudo_v3');
+  if(d){ try{ S = JSON.parse(d); }catch(e){} }
+  // migrate v2
+  const old = localStorage.getItem('zoiudo_v2');
+  if(old && !d){
+    try{
+      const o = JSON.parse(old);
+      // convert old accounts to banks
+      if(o.accounts && o.accounts.length){
+        const bankMap = {};
+        o.accounts.forEach(a=>{
+          bankMap[a.id] = {
+            id: uid(), name: a.name, icon: a.icon||'🏦',
+            subAccounts:[{id:a.id, type:a.type==='cc'?'cc':a.type==='investment'?'investment':a.type==='cash'?'cash':'bank',
+              name: SUB_TYPE_LABELS[a.type]||'Conta', balance:a.balance||0, limit:a.limit||0, invType:a.invType||''}]
+          };
+        });
+        S.banks = Object.values(bankMap);
+        S.transactions = (o.transactions||[]).map(t=>({...t, bankId: bankMap[t.accountId]?.id||'', subAccountId:t.accountId, bankToId:'', subAccountToId:t.accountToId||''}));
+      }
+    }catch(e){}
+  }
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function fmt(n){ return 'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function mkey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
+function getMonthTxs(){
+  const k = mkey(S.currentYear, S.currentMonth+1);
+  return S.transactions.filter(t=>t.month===k);
+}
+
+// ═══ NAV ═══
+function switchPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('app').scrollTo(0,0);
+  if(name==='analytics') renderAnalytics();
+  if(name==='accounts') renderAccountsPage();
+  if(name==='investments') renderInvestmentsPage();
+}
+function changeMonth(dir){
+  S.currentMonth += dir;
+  if(S.currentMonth>11){S.currentMonth=0;S.currentYear++;}
+  if(S.currentMonth<0){S.currentMonth=11;S.currentYear--;}
+  render();
+}
+function setFilter(f,el){
+  activeFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  render();
+}
+
+// ═══ MODALS ═══
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='txModal' && !editingTxId) resetTxForm();
+  if(id==='bankModal' && !editingBankId) resetBankForm();
+  if(id==='subModal' && !editingSubId) resetSubForm();
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='txModal'){editingTxId=null; resetTxForm();}
+  if(id==='bankModal'){editingBankId=null; resetBankForm();}
+  if(id==='subModal'){editingSubId=null; editingSubBankId=null; resetSubForm();}
+}
+function closeOnBg(e,id){ if(e.target===e.currentTarget) closeModal(id); }
+
+// ═══ BANK FORM ═══
+function renderBankEmojiGrid(){
+  document.getElementById('bankEmojiGrid').innerHTML =
+    BANK_EMOJIS.map(e=>`<button class="emoji-btn${e===selectedBankEmoji?' selected':''}" onclick="selectBankEmoji('${e}')">${e}</button>`).join('');
+}
+function selectBankEmoji(e){ selectedBankEmoji=e; renderBankEmojiGrid(); }
+function resetBankForm(){
+  selectedBankEmoji='🏦'; editingBankId=null;
+  document.getElementById('bankModalTitle').textContent='Novo Banco';
+  document.getElementById('bankName').value='';
+  document.getElementById('btnDeleteBank').style.display='none';
+  renderBankEmojiGrid();
+}
+function saveBank(){
+  const name = document.getElementById('bankName').value.trim();
+  if(!name){showToast('⚠️ Informe o nome');return;}
+  if(editingBankId){
+    const b = S.banks.find(x=>x.id===editingBankId);
+    if(b){b.name=name; b.icon=selectedBankEmoji;}
+    showToast('✅ Banco atualizado');
+  } else {
+    S.banks.push({id:uid(), name, icon:selectedBankEmoji, subAccounts:[]});
+    showToast('✅ Banco adicionado');
+  }
+  save(); closeModal('bankModal'); render();
+}
+function openEditBank(id){
+  editingBankId=id;
+  const b = S.banks.find(x=>x.id===id);
+  if(!b) return;
+  selectedBankEmoji=b.icon||'🏦';
+  document.getElementById('bankModalTitle').textContent='Editar Banco';
+  document.getElementById('bankName').value=b.name;
+  document.getElementById('btnDeleteBank').style.display='block';
+  renderBankEmojiGrid();
+  openModal('bankModal');
+}
+function deleteBank(){
+  if(!editingBankId) return;
+  S.banks = S.banks.filter(b=>b.id!==editingBankId);
+  S.transactions = S.transactions.filter(t=>t.bankId!==editingBankId);
+  if(selectedBankIdForDetail===editingBankId) selectedBankIdForDetail=null;
+  save(); closeModal('bankModal'); render();
+  showToast('🗑️ Banco removido');
+}
+
+// ═══ SUB-ACCOUNT FORM ═══
+function resetSubForm(){
+  subType='bank';
+  document.getElementById('subModalTitle').textContent='Nova Sub-conta';
+  document.getElementById('subName').value='';
+  document.getElementById('subBalance').value='';
+  document.getElementById('subLimit').value='';
+  document.getElementById('subCCBal').value='';
+  document.getElementById('btnDeleteSub').style.display='none';
+  updateSubTypeBtns(); updateSubFormFields();
+}
+function setSubType(t){ subType=t; updateSubTypeBtns(); updateSubFormFields(); }
+function updateSubTypeBtns(){
+  ['bank','savings','cc','investment','cash'].forEach(t=>{
+    const map={bank:'Bank',savings:'Savings',cc:'CC',inv:'Inv',cash:'Cash'};
+    const id='st'+(t==='bank'?'Bank':t==='savings'?'Savings':t==='cc'?'CC':t==='investment'?'Inv':'Cash');
+    const el=document.getElementById(id);
+    if(el) el.className='type-btn'+(subType===t?' sel-'+(t==='cc'||t==='cash'?'expense':t==='investment'?'investment':t==='savings'?'income':'transfer'):'');
+  });
+}
+function updateSubFormFields(){
+  document.getElementById('subCCExtras').style.display = subType==='cc'?'block':'none';
+  document.getElementById('subInvExtras').style.display = subType==='investment'?'block':'none';
+  document.getElementById('subBalWrap').style.display = subType==='cc'?'none':'block';
+  const lbl = document.getElementById('subBalLbl');
+  if(subType==='investment') lbl.textContent='Valor Atual (R$)';
+  else if(subType==='savings') lbl.textContent='Saldo Poupança (R$)';
+  else if(subType==='cash') lbl.textContent='Valor em Caixa (R$)';
+  else lbl.textContent='Saldo Atual (R$)';
+}
+function openAddSubAccount(bankId){
+  editingSubBankId = bankId;
+  editingSubId = null;
+  resetSubForm();
+  openModal('subModal');
+}
+function openEditSubAccount(bankId, subId){
+  editingSubBankId = bankId;
+  editingSubId = subId;
+  const b = S.banks.find(x=>x.id===bankId);
+  if(!b) return;
+  const s = b.subAccounts.find(x=>x.id===subId);
+  if(!s) return;
+  subType = s.type;
+  document.getElementById('subModalTitle').textContent='Editar Sub-conta';
+  document.getElementById('subName').value = s.name||'';
+  document.getElementById('subBalance').value = s.balance||'';
+  document.getElementById('subLimit').value = s.limit||'';
+  document.getElementById('subCCBal').value = s.ccBalance||s.balance||'';
+  document.getElementById('subInvType').value = s.invType||'CDB';
+  document.getElementById('btnDeleteSub').style.display='block';
+  updateSubTypeBtns(); updateSubFormFields();
+  openModal('subModal');
+}
+function saveSubAccount(){
+  const bankId = editingSubBankId;
+  const b = S.banks.find(x=>x.id===bankId);
+  if(!b){showToast('⚠️ Banco não encontrado');return;}
+  const rawName = document.getElementById('subName').value.trim();
+  const name = rawName || SUB_TYPE_LABELS[subType];
+  const balance = subType==='cc' ? (parseFloat(document.getElementById('subCCBal').value)||0) : (parseFloat(document.getElementById('subBalance').value)||0);
+  const limit = parseFloat(document.getElementById('subLimit').value)||0;
+  const invType = document.getElementById('subInvType').value;
+  const obj = {id:editingSubId||uid(), type:subType, name, balance, limit, invType};
+  if(editingSubId){
+    const idx = b.subAccounts.findIndex(s=>s.id===editingSubId);
+    if(idx>-1) b.subAccounts[idx]=obj;
+    showToast('✅ Sub-conta atualizada');
+  } else {
+    b.subAccounts.push(obj);
+    showToast('✅ Sub-conta adicionada');
+  }
+  save(); closeModal('subModal'); render();
+}
+function deleteSubAccount(){
+  if(!editingSubId||!editingSubBankId) return;
+  const b = S.banks.find(x=>x.id===editingSubBankId);
+  if(b) b.subAccounts = b.subAccounts.filter(s=>s.id!==editingSubId);
+  S.transactions = S.transactions.map(t=>t.subAccountId===editingSubId?{...t,subAccountId:''}:t);
+  save(); closeModal('subModal'); render();
+  showToast('🗑️ Sub-conta removida');
+}
+
+// ═══ TX FORM ═══
+function resetTxForm(){
+  txType='expense'; txRecur=false;
+  document.getElementById('txModalTitle').textContent='Novo Lançamento';
+  document.getElementById('txAmount').value='';
+  document.getElementById('txName').value='';
+  document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('txCategory').value='🍔 Alimentação';
+  document.getElementById('btnDeleteTx').style.display='none';
+  document.getElementById('recurToggle').classList.remove('on');
+  selectedTxBankId = S.banks.length ? S.banks[0].id : null;
+  updateTypeBtns(); updateTxFormFields();
+  populateTxBankSelector();
+  populateSubAccountSelect();
+}
+function setTxType(t){ txType=t; updateTypeBtns(); updateTxFormFields(); }
+function updateTypeBtns(){
+  ['expense','income','transfer','investment','withdrawal'].forEach(t=>{
+    const el=document.getElementById('tb'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el) el.className='type-btn'+(txType===t?' sel-'+t:'');
+  });
+}
+function updateTxFormFields(){
+  document.getElementById('recurWrap').style.display = txType==='income'?'block':'none';
+  document.getElementById('toAccountWrap').style.display = txType==='transfer'?'block':'none';
+  if(txType!=='income'){txRecur=false;document.getElementById('recurToggle').classList.remove('on');}
+}
+function toggleRecur(){ txRecur=!txRecur; document.getElementById('recurToggle').classList.toggle('on',txRecur); }
+
+function populateTxBankSelector(){
+  const el = document.getElementById('txBankSelector');
+  if(!S.banks.length){el.innerHTML='<span style="color:var(--text2);font-size:12px">Nenhum banco cadastrado</span>';return;}
+  el.innerHTML = S.banks.map(b=>`<div class="bank-sel-chip${b.id===selectedTxBankId?' active':''}" onclick="selectTxBank('${b.id}')">${b.icon} ${b.name}</div>`).join('');
+  populateSubAccountSelect();
+}
+function selectTxBank(id){
+  selectedTxBankId=id;
+  populateTxBankSelector();
+  populateSubAccountSelect();
+}
+function populateSubAccountSelect(){
+  const bank = S.banks.find(b=>b.id===selectedTxBankId);
+  const subs = bank ? bank.subAccounts : [];
+  const opts = '<option value="">— Sem sub-conta —</option>' + subs.map(s=>`<option value="${s.id}">${SUB_TYPE_ICONS[s.type]||'🏦'} ${s.name}</option>`).join('');
+  document.getElementById('txAccount').innerHTML = opts;
+  // also populate dest for transfers (all sub accounts)
+  const allSubs = S.banks.flatMap(b=>b.subAccounts.map(s=>({...s,bankName:b.name,bankIcon:b.icon})));
+  document.getElementById('txAccountTo').innerHTML = '<option value="">— Sem conta —</option>' +
+    allSubs.map(s=>`<option value="${s.id}">${s.bankIcon} ${SUB_TYPE_ICONS[s.type]||'🏦'} ${s.name}</option>`).join('');
+}
+function populateNameSuggestions(){
+  const names=[...new Set(S.transactions.map(t=>t.name))].sort();
+  document.getElementById('txNameSuggestions').innerHTML=names.map(n=>`<option value="${n}">`).join('');
+}
+
+function saveTx(){
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const name = document.getElementById('txName').value.trim();
+  const category = document.getElementById('txCategory').value;
+  const subAccountId = document.getElementById('txAccount').value;
+  const subAccountToId = document.getElementById('txAccountTo').value;
+  const date = document.getElementById('txDate').value;
+  if(!amount||amount<=0||!name){showToast('⚠️ Preencha nome e valor');return;}
+  const d = new Date(date+'T12:00:00');
+  const k = mkey(d.getFullYear(), d.getMonth()+1);
+  const bankId = selectedTxBankId||'';
+  // find bankTo from subAccountTo
+  let bankToId='';
+  if(subAccountToId){
+    const bTo=S.banks.find(b=>b.subAccounts.some(s=>s.id===subAccountToId));
+    if(bTo) bankToId=bTo.id;
+  }
+  const obj={id:editingTxId||uid(),type:txType,name,amount,category,bankId,subAccountId,bankToId,subAccountToId:txType==='transfer'?subAccountToId:'',date,month:k,recurrent:txRecur};
+  if(editingTxId){
+    const idx=S.transactions.findIndex(t=>t.id===editingTxId);
+    if(idx>-1) S.transactions[idx]=obj;
+    showToast('✅ Lançamento atualizado');
+  } else {
+    S.transactions.push(obj);
+    if(txRecur){
+      for(let i=1;i<=11;i++){
+        let m=d.getMonth()+i; let y=d.getFullYear();
+        while(m>11){m-=12;y++;}
+        const fd=new Date(y,m,d.getDate());
+        const fk=mkey(fd.getFullYear(),fd.getMonth()+1);
+        S.transactions.push({...obj,id:uid(),date:fd.toISOString().slice(0,10),month:fk});
+      }
+    }
+    showToast('✅ Lançamento salvo');
+  }
+  save(); closeModal('txModal'); render();
+}
+function openEditTx(id){
+  editingTxId=id;
+  const t=S.transactions.find(x=>x.id===id);
+  if(!t) return;
+  txType=t.type; txRecur=t.recurrent||false;
+  selectedTxBankId=t.bankId||null;
+  document.getElementById('txModalTitle').textContent='Editar Lançamento';
+  document.getElementById('txAmount').value=t.amount;
+  document.getElementById('txName').value=t.name;
+  document.getElementById('txDate').value=t.date;
+  document.getElementById('txCategory').value=t.category;
+  document.getElementById('btnDeleteTx').style.display='block';
+  document.getElementById('recurToggle').classList.toggle('on',txRecur);
+  updateTypeBtns(); updateTxFormFields();
+  populateTxBankSelector();
+  setTimeout(()=>{
+    document.getElementById('txAccount').value=t.subAccountId||'';
+    document.getElementById('txAccountTo').value=t.subAccountToId||'';
+  },50);
+  openModal('txModal');
+}
+function deleteTx(){
+  if(!editingTxId) return;
+  S.transactions=S.transactions.filter(t=>t.id!==editingTxId);
+  save(); closeModal('txModal'); render();
+  showToast('🗑️ Removido');
+}
+
+// ═══ RENDER ═══
+function render(){
+  document.getElementById('monthLabel').textContent=`${MONTHS[S.currentMonth].slice(0,3)} ${S.currentYear}`;
+
+  const allTxs=getMonthTxs();
+  const income=allTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense=allTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const invested=allTxs.filter(t=>t.type==='investment').reduce((s,t)=>s+t.amount,0);
+  const balance=income-expense;
+
+  const hb=document.getElementById('heroBalance');
+  hb.textContent=fmt(balance);
+  hb.className='hero-amount'+(balance<0?' neg':'');
+  document.getElementById('heroIncome').textContent=fmt(income);
+  document.getElementById('heroExpense').textContent=fmt(expense);
+  document.getElementById('heroInvested').textContent=fmt(invested);
+
+  // CC total (sum of all cc sub-account balances)
+  const ccTotal=S.banks.flatMap(b=>b.subAccounts.filter(s=>s.type==='cc')).reduce((s,a)=>s+a.balance,0);
+  document.getElementById('heroCCTotal').textContent=fmt(ccTotal);
+
+  const pct=income>0?Math.min(100,Math.round(expense/income*100)):0;
+  document.getElementById('budgetPct').textContent=pct+'%';
+  const bar=document.getElementById('budgetBar');
+  bar.style.width=pct+'%';
+  bar.style.background=pct>90?'var(--red)':pct>70?'var(--orange)':'var(--accent)';
+
+  renderPatrimonio();
+  renderBankCards();
+  renderBankDetail();
+  renderTxList(allTxs);
+  populateNameSuggestions();
+}
+
+function renderPatrimonio(){
+  // total = sum of all sub-accounts except CC (CC is a debt)
+  const bankTotal = S.banks.reduce((s,b)=>s+b.subAccounts.filter(a=>a.type!=='cc').reduce((ss,a)=>ss+a.balance,0),0);
+  const invTotal = S.banks.reduce((s,b)=>s+b.subAccounts.filter(a=>a.type==='investment').reduce((ss,a)=>ss+a.balance,0),0);
+  document.getElementById('patrimonioTotal').textContent=fmt(bankTotal);
+  document.getElementById('patrimonioInv').textContent=fmt(invTotal);
+
+  const bkd=document.getElementById('patrimonioBkd');
+  if(!S.banks.length){bkd.innerHTML='';return;}
+  const totalBal=Math.max(bankTotal,1);
+  bkd.innerHTML=S.banks.map(b=>{
+    const bTotal=b.subAccounts.filter(a=>a.type!=='cc').reduce((s,a)=>s+a.balance,0);
+    const pct=Math.round(bTotal/totalBal*100);
+    return `<div class="pat-item"><div class="lbl">${b.icon} ${b.name}</div><div class="val">${fmt(bTotal)}</div></div>`;
+  }).join('');
+}
+
+function renderBankCards(){
+  const scroll=document.getElementById('bankScroll');
+  if(!S.banks.length){
+    scroll.innerHTML=`<div class="add-bank-card" onclick="openModal('bankModal')"><span style="font-size:26px">🏦</span><span>Adicionar Banco</span></div>`;
+    return;
+  }
+  const cards=S.banks.map(b=>{
+    const totalBal=b.subAccounts.filter(a=>a.type!=='cc').reduce((s,a)=>s+a.balance,0);
+    const types=[...new Set(b.subAccounts.map(s=>s.type))];
+    const chips=types.map(t=>`<span class="sub-chip ${t==='bank'||t==='savings'?'bank':t==='cc'?'cc':t==='investment'?'inv':'cash'}">${SUB_TYPE_LABELS[t]||t}</span>`).join('');
+    const isActive=b.id===selectedBankIdForDetail;
+    return `<div class="bank-card${isActive?' active-bank':''}" onclick="selectBank('${b.id}')">
+      <div class="bank-card-top">
+        <div class="bank-icon-wrap">${b.icon}</div>
+        <div>
+          <div class="bank-card-name">${b.name}</div>
+        </div>
+      </div>
+      <div class="bank-card-total-lbl">Saldo</div>
+      <div class="bank-card-total">${fmt(totalBal)}</div>
+      <div class="bank-sub-chips">${chips||'<span class="sub-chip bank">Sem contas</span>'}</div>
+    </div>`;
+  }).join('');
+  scroll.innerHTML=cards+`<div class="add-bank-card" onclick="openModal('bankModal')"><span style="font-size:22px">＋</span><span>Novo Banco</span></div>`;
+}
+
+function selectBank(id){
+  if(selectedBankIdForDetail===id){
+    selectedBankIdForDetail=null;
+  } else {
+    selectedBankIdForDetail=id;
+  }
+  renderBankCards();
+  renderBankDetail();
+}
+
+function renderBankDetail(){
+  const wrap=document.getElementById('bankDetailWrap');
+  if(!selectedBankIdForDetail){wrap.style.display='none';return;}
+  const b=S.banks.find(x=>x.id===selectedBankIdForDetail);
+  if(!b){wrap.style.display='none';return;}
+  wrap.style.display='block';
+
+  const subRows=b.subAccounts.map(s=>{
+    const typeClass=s.type==='cc'?'cc':s.type==='investment'?'inv':s.type==='cash'?'cash':'bank';
+    const balClass=s.type==='investment'?'inv-col':s.type==='cash'?'cash-col':s.type==='cc'?'neg':'pos';
+    const prefix=s.type==='cc'?'Fatura: ':'Saldo: ';
+    let ccBar='';
+    if(s.type==='cc'&&s.limit>0){
+      const pct=Math.min(100,Math.round(s.balance/s.limit*100));
+      ccBar=`<div class="cc-limit-mini"><div class="cc-mini-bar"><div class="cc-mini-fill" style="width:${pct}%;background:${pct>80?'var(--red)':'var(--orange)'}"></div></div><span class="cc-mini-pct">${pct}% de ${fmt(s.limit)}</span></div>`;
+    }
+    return `<div class="subaccount-row" onclick="openEditSubAccount('${b.id}','${s.id}')">
+      <div class="sub-icon ${typeClass}">${SUB_TYPE_ICONS[s.type]||'🏦'}</div>
+      <div class="sub-info">
+        <div class="sub-name">${s.name}</div>
+        <div class="sub-meta">${SUB_TYPE_LABELS[s.type]}${s.invType?' • '+s.invType:''}</div>
+        ${ccBar}
+      </div>
+      <div class="sub-balance ${balClass}">${s.type==='cc'?'−':''} ${fmt(s.balance)}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('bankDetail').innerHTML=`
+    <div class="bank-detail-header">
+      <div class="bank-detail-title">
+        <span style="font-size:22px">${b.icon}</span>
+        <span class="bank-detail-name">${b.name}</span>
+      </div>
+      <button class="btn-sm-ghost" onclick="openEditBank('${b.id}')">Editar</button>
+    </div>
+    <div class="subaccount-list">${subRows||'<div style="padding:16px;color:var(--text2);font-size:13px;text-align:center">Nenhuma conta adicionada</div>'}</div>
+    <div class="add-sub-row" onclick="openAddSubAccount('${b.id}')">
+      <span style="font-size:16px">＋</span>
+      <span>Adicionar conta / cartão / investimento</span>
+    </div>
+  `;
+}
+
+function renderTxList(allTxs){
+  const search=document.getElementById('searchInput').value.trim().toLowerCase();
+  let txs=allTxs;
+  if(activeFilter!=='all') txs=txs.filter(t=>t.type===activeFilter);
+  if(search) txs=txs.filter(t=>t.name.toLowerCase().includes(search)||t.category.toLowerCase().includes(search));
+  const el=document.getElementById('txList');
+  if(!txs.length){el.innerHTML='<div class="empty-state"><div class="emoji">📋</div><p>Nenhum lançamento encontrado</p></div>';return;}
+  const sorted=[...txs].sort((a,b)=>b.date.localeCompare(a.date));
+  let html=''; let lastDate='';
+  sorted.forEach(t=>{
+    if(t.date!==lastDate){
+      const d=new Date(t.date+'T12:00:00');
+      html+=`<div class="divider-label">${d.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})}</div>`;
+      lastDate=t.date;
+    }
+    const bank=S.banks.find(b=>b.id===t.bankId);
+    const sub=bank?bank.subAccounts.find(s=>s.id===t.subAccountId):null;
+    const sign={expense:'−',income:'+',transfer:'↔',investment:'📈',withdrawal:'💸'}[t.type]||'';
+    const cls={expense:'neg',income:'pos',transfer:'neu',investment:'neu',withdrawal:'neu'}[t.type]||'';
+    const catEmoji=t.category?t.category.split(' ')[0]:'💰';
+    html+=`<div class="tx-item" onclick="openEditTx('${t.id}')">
+      <div class="tx-icon type-${t.type}">${catEmoji}</div>
+      <div class="tx-info">
+        <div class="tx-name">${t.name}</div>
+        <div class="tx-meta">
+          <span class="tx-cat">${t.category||''}</span>
+          ${bank?`<span>${bank.icon} ${bank.name}${sub?' • '+sub.name:''}</span>`:''}
+          ${t.recurrent?'<span class="tx-recur">🔁 Recorrente</span>':''}
+        </div>
+      </div>
+      <div class="tx-amount ${cls}">${sign} ${fmt(t.amount)}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ═══ ACCOUNTS PAGE ═══
+function renderAccountsPage(){
+  const el=document.getElementById('accountsPage');
+  if(!S.banks.length){el.innerHTML='<div class="empty-state"><div class="emoji">🏦</div><p>Nenhum banco cadastrado</p></div>';return;}
+  const COLS=['#4fc3f7','#7fff6e','#ff7b54','#ab47bc','#69f0ae','#ffd54f','#80cbc4'];
+  el.innerHTML=S.banks.map((b,bi)=>{
+    const totalBal=b.subAccounts.filter(a=>a.type!=='cc').reduce((s,a)=>s+a.balance,0);
+    const subHtml=b.subAccounts.map(s=>{
+      const ccBar=s.type==='cc'&&s.limit>0?`<div class="cc-limit-mini" style="margin-top:4px"><div class="cc-mini-bar" style="max-width:120px"><div class="cc-mini-fill" style="width:${Math.min(100,Math.round(s.balance/s.limit*100))}%;background:${s.balance/s.limit>0.8?'var(--red)':'var(--orange)'}"></div></div><span class="cc-mini-pct">${Math.round(s.balance/s.limit*100)}% de ${fmt(s.limit)}</span></div>`:'';
+      const balCol=s.type==='investment'?'var(--accent)':s.type==='cc'?'var(--red)':s.type==='cash'?'var(--purple)':'var(--green)';
+      return `<div class="subaccount-row" onclick="openEditSubAccount('${b.id}','${s.id}')">
+        <div class="sub-icon ${s.type==='cc'?'cc':s.type==='investment'?'inv':s.type==='cash'?'cash':'bank'}">${SUB_TYPE_ICONS[s.type]||'🏦'}</div>
+        <div class="sub-info">
+          <div class="sub-name">${s.name}</div>
+          <div class="sub-meta">${SUB_TYPE_LABELS[s.type]}${s.invType?' • '+s.invType:''}</div>
+          ${ccBar}
+        </div>
+        <div class="sub-balance" style="color:${balCol}">${fmt(s.balance)}</div>
+      </div>`;
+    }).join('');
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden">
+      <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:40px;background:var(--surface2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">${b.icon}</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${b.name}</div>
+            <div style="font-size:10px;color:var(--text2)">${b.subAccounts.length} conta(s)</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Saldo</div>
+          <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--accent)">${fmt(totalBal)}</div>
+        </div>
+      </div>
+      ${subHtml}
+      <div class="add-sub-row" onclick="openAddSubAccount('${b.id}')">
+        <span style="font-size:16px">＋</span>
+        <span>Adicionar conta / cartão / investimento</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ INVESTMENTS PAGE ═══
+function renderInvestmentsPage(){
+  const invSubs=S.banks.flatMap(b=>b.subAccounts.filter(s=>s.type==='investment').map(s=>({...s,bankName:b.name,bankIcon:b.icon})));
+  const invTxs=S.transactions.filter(t=>t.type==='investment'||t.type==='withdrawal');
+  const total=invSubs.reduce((s,a)=>s+a.balance,0);
+  document.getElementById('invTotal').textContent=fmt(total);
+  const el=document.getElementById('invList');
+  if(!invSubs.length){
+    el.innerHTML='<div class="empty-state"><div class="emoji">📈</div><p>Nenhuma conta de investimento<br><small>Adicione uma sub-conta do tipo Investimento</small></p></div>';
+    return;
+  }
+  el.innerHTML=invSubs.map(s=>{
+    const subTxs=invTxs.filter(t=>t.subAccountId===s.id);
+    const aportado=subTxs.filter(t=>t.type==='investment').reduce((ss,t)=>ss+t.amount,0);
+    const retirado=subTxs.filter(t=>t.type==='withdrawal').reduce((ss,t)=>ss+t.amount,0);
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:40px;height:40px;background:rgba(127,255,110,.1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px">📈</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${s.name}</div>
+          <div style="font-size:10px;color:var(--text2)">${s.bankIcon} ${s.bankName}${s.invType?' • '+s.invType:''}</div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--accent)">${fmt(s.balance)}</div>
+      </div>
+      <div style="display:flex;gap:14px">
+        <div><div style="font-size:9px;color:var(--text2)">Aportado</div><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green)">${fmt(aportado)}</div></div>
+        <div><div style="font-size:9px;color:var(--text2)">Retirado</div><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--purple)">${fmt(retirado)}</div></div>
+        <div><div style="font-size:9px;color:var(--text2)">Movimentos</div><div style="font-family:'DM Mono',monospace;font-size:12px">${subTxs.length}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ ANALYTICS ═══
+function renderAnalytics(){
+  const txs=getMonthTxs();
+  const expenses=txs.filter(t=>t.type==='expense');
+  const incomes=txs.filter(t=>t.type==='income');
+  const invested=txs.filter(t=>t.type==='investment').reduce((s,t)=>s+t.amount,0);
+  const maxExp=expenses.reduce((m,t)=>t.amount>m.amount?t:m,{amount:0,name:'—'});
+  const maxInc=incomes.reduce((m,t)=>t.amount>m.amount?t:m,{amount:0,name:'—'});
+  document.getElementById('statMaxExp').textContent=maxExp.amount>0?fmt(maxExp.amount):'—';
+  document.getElementById('statMaxExpName').textContent=maxExp.name||'—';
+  document.getElementById('statMaxInc').textContent=maxInc.amount>0?fmt(maxInc.amount):'—';
+  document.getElementById('statMaxIncName').textContent=maxInc.name||'—';
+  document.getElementById
