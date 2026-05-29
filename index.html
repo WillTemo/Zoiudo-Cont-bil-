@@ -38,84 +38,99 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .mnav button:active{background:var(--border)}
 .mlbl{font-size:11px;color:var(--t2);min-width:78px;text-align:center;font-family:'DM Mono',monospace}
 
-/* HERO */
-.hero{margin:12px 16px 0;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:0;position:relative;overflow:hidden}
-.hero-top{padding:20px 20px 16px;background:linear-gradient(160deg,#0d1f0d 0%,#0b1320 60%,#11091a 100%);position:relative;overflow:hidden}
-.hero-top::before{content:'';position:absolute;top:-50px;right:-30px;width:180px;height:180px;background:radial-gradient(circle,rgba(127,255,110,.12) 0%,transparent 65%);border-radius:50%;pointer-events:none}
-.hero-top::after{content:'';position:absolute;bottom:-30px;left:20px;width:100px;height:100px;background:radial-gradient(circle,rgba(79,195,247,.07) 0%,transparent 70%);border-radius:50%;pointer-events:none}
-.h-eyebrow{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.h-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 2.5s ease-in-out infinite}
-@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
-.h-lbl{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2)}
-.h-amt{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:42px;letter-spacing:-1.5px;color:var(--accent);line-height:1;margin-bottom:4px}
-.h-amt.neg{color:var(--red)}
-.h-change{font-size:10px;color:var(--t2);display:flex;align-items:center;gap:4px;margin-bottom:14px}
-.h-change-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;font-family:'DM Mono',monospace}
+/* ── HERO CARD ────────────────────────────────────── */
+.hero{margin:12px 16px 0;border-radius:20px;overflow:hidden;position:relative;background:linear-gradient(155deg,#0c1f0c 0%,#091320 55%,#100918 100%);border:1px solid rgba(127,255,110,.13)}
+.hero::before{content:'';position:absolute;top:-60px;right:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(127,255,110,.09) 0%,transparent 65%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-40px;left:-20px;width:160px;height:160px;background:radial-gradient(circle,rgba(79,195,247,.06) 0%,transparent 65%);pointer-events:none}
+
+/* balance block */
+.hero-bal{padding:20px 20px 0;position:relative}
+.hero-eyebrow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pdot 2.6s ease-in-out infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+.hero-lbl{font-size:9px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--t2)}
+.hero-amt{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:44px;letter-spacing:-2px;line-height:1;color:var(--accent);margin-bottom:3px}
+.hero-amt.neg{color:var(--red)}
+.hero-sub{font-size:11px;color:var(--t2);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.hero-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace}
 .badge-pos{background:rgba(93,240,160,.15);color:var(--green)}
 .badge-neg{background:rgba(255,79,79,.15);color:var(--red)}
 .badge-neu{background:rgba(255,255,255,.07);color:var(--t2)}
-.prog-wrap{margin-bottom:2px}
-.prog-info{display:flex;justify-content:space-between;font-size:9px;color:var(--t2);margin-bottom:5px}
-.prog-track{background:rgba(255,255,255,.06);border-radius:4px;height:6px;overflow:hidden}
-.prog-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.4,.64,1),background .3s}
-/* metric tiles */
-.h-tiles{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
-.h-tile{background:var(--surface);padding:13px 15px;cursor:default;position:relative;overflow:hidden;transition:background .15s}
-.h-tile:active{background:var(--s2)}
-.h-tile-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
-.h-tile-lbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.h-tile-ico{font-size:12px}
-.h-tile-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
-.v-inc{color:var(--green)}.v-exp{color:var(--red)}.v-inv{color:var(--accent)}.v-cc{color:var(--orange)}
-/* savings rate ring */
-.h-ring-wrap{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
-.h-ring-info{flex:1}
-.h-ring-svg{flex-shrink:0;margin-left:10px}
 
-/* SECTION TITLE */
+/* budget bar */
+.hero-bar-wrap{padding:0 20px 18px}
+.hero-bar-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hero-bar-lbl{font-size:9px;color:var(--t2);font-weight:500}
+.hero-bar-pct{font-family:'DM Mono',monospace;font-size:10px;font-weight:700}
+.hero-track{background:rgba(255,255,255,.06);border-radius:5px;height:5px;overflow:hidden}
+.hero-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.34,1.4,.64,1),background .3s}
+
+/* 2×2 metric grid */
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,.06)}
+.hg-cell{padding:13px 16px;position:relative;border-right:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)}
+.hg-cell:nth-child(2),.hg-cell:nth-child(4){border-right:none}
+.hg-cell:nth-child(3),.hg-cell:nth-child(4){border-bottom:none}
+.hg-lbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.hg-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+.hg-sub{font-size:9px;color:var(--t3);margin-top:2px}
+.v-inc{color:var(--green)}.v-exp{color:var(--red)}.v-inv{color:var(--accent)}.v-cc{color:var(--orange)}
+.hg-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+/* ── SECTION TITLE ───────────────────────────────── */
 .stitle{display:flex;justify-content:space-between;align-items:center;padding:18px 16px 8px}
 .stitle h2{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2)}
 .btn-sm{background:var(--accent);color:#0b0d10;border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
 .btn-sm:active{opacity:.8}
 
-/* SUMMARY STRIP */
-.summary-strip{display:flex;gap:8px;padding:12px 16px 0;overflow-x:auto;scrollbar-width:none}
-.summary-strip::-webkit-scrollbar{display:none}
-.ss-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 14px;flex-shrink:0;min-width:110px;position:relative;overflow:hidden}
-.ss-card .ss-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
-.ss-lbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:5px;display:flex;align-items:center;gap:4px}
-.ss-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+/* ── NET WORTH BAR (patrimônio) ──────────────────── */
+.nw-bar{margin:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px}
+.nw-ico{font-size:20px;flex-shrink:0}
+.nw-info{flex:1;min-width:0}
+.nw-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.nw-lbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2)}
+.nw-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent)}
+.nw-track{background:rgba(255,255,255,.06);border-radius:3px;height:4px;display:flex;overflow:hidden;gap:1px}
+.nw-seg{height:100%;border-radius:2px;transition:width .5s ease}
+.nw-legend{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+.nw-leg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t2)}
+.nw-leg-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 
-/* BANKS SCROLL */
+/* ── CC PANEL ────────────────────────────────────── */
+.cc-panel{margin:10px 16px 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.cc-ph{display:flex;justify-content:space-between;align-items:center;padding:11px 14px 10px;border-bottom:1px solid var(--border)}
+.cc-ph h3{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2);display:flex;align-items:center;gap:5px}
+.cc-ph .cc-total-tag{font-family:'DM Mono',monospace;font-size:12px;color:var(--orange)}
+.cc-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.cc-row:last-child{border-bottom:none}
+.cc-row:active{background:var(--s2)}
+.cc-ri{width:32px;height:32px;border-radius:9px;background:rgba(255,179,71,.1);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.cc-rinfo{flex:1;min-width:0}
+.cc-rname{font-size:12px;font-weight:600;margin-bottom:1px}
+.cc-dates{font-size:9px;color:var(--t2)}
+.cc-rbar-wrap{display:flex;align-items:center;gap:5px;margin-top:4px}
+.cc-rbar-track{flex:1;height:3px;background:var(--s2);border-radius:2px;overflow:hidden}
+.cc-rbar-fill{height:100%;border-radius:2px;transition:width .4s}
+.cc-rright{text-align:right;flex-shrink:0}
+.cc-ramt{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--orange)}
+.cc-rlimit{font-size:9px;color:var(--t2);margin-top:1px}
+.cc-urgency{font-size:9px;padding:2px 6px;border-radius:10px;font-weight:700;margin-top:2px;display:inline-block}
+.cc-urg-ok{background:rgba(93,240,160,.1);color:var(--green)}
+.cc-urg-warn{background:rgba(255,179,71,.12);color:var(--orange)}
+.cc-urg-danger{background:rgba(255,79,79,.12);color:var(--red)}
+
+/* ── BANKS SCROLL ────────────────────────────────── */
 .banks-scroll{display:flex;gap:10px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
 .banks-scroll::-webkit-scrollbar{display:none}
-.bank-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;min-width:155px;flex-shrink:0;cursor:pointer;transition:border-color .15s,transform .12s;position:relative;overflow:hidden}
+.bank-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;min-width:148px;flex-shrink:0;cursor:pointer;transition:border-color .15s,transform .12s;position:relative;overflow:hidden}
 .bank-card:active{transform:scale(.97)}
-.bank-card .bc-accent-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
-.bc-icon{font-size:22px;margin-bottom:8px;margin-top:4px}
-.bc-name{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:125px}
-.bc-total{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
-.bc-subs{font-size:10px;color:var(--t2);margin-top:3px}
-.add-bank{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:14px;min-width:90px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--t2);font-size:10px;font-weight:500}
+.bc-accent-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.bc-icon{font-size:20px;margin-bottom:7px;margin-top:3px}
+.bc-name{font-size:11px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;color:var(--t2)}
+.bc-total{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+.bc-subs{font-size:9px;color:var(--t3);margin-top:3px}
+.add-bank{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:14px;min-width:80px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--t2);font-size:10px;font-weight:500}
 .add-bank:active{border-color:var(--accent)}
-.add-bank span:first-child{font-size:22px}
-
-/* CC PANEL */
-.cc-panel{margin:12px 16px 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px}
-.cc-ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.cc-ph h3{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2)}
-.cc-ph .cc-total-tag{font-family:'DM Mono',monospace;font-size:12px;color:var(--orange)}
-.cc-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
-.cc-row:last-child{border-bottom:none;padding-bottom:0}
-.cc-ri{font-size:16px;width:28px;text-align:center}
-.cc-rinfo{flex:1}
-.cc-rname{font-size:12px;font-weight:500}
-.cc-rbank{font-size:10px;color:var(--t2)}
-.cc-rbar-wrap{display:flex;align-items:center;gap:5px;margin-top:3px}
-.cc-rbar-track{flex:1;height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
-.cc-rbar-fill{height:100%;border-radius:2px}
-.cc-ramt{font-family:'DM Mono',monospace;font-size:12px;color:var(--orange);text-align:right}
-.cc-dates{font-size:9px;color:var(--t2);margin-top:2px}
+.add-bank span:first-child{font-size:20px}
 
 /* FILTER BAR */
 .fbar{display:flex;gap:7px;padding:0 16px;overflow-x:auto;scrollbar-width:none;margin-bottom:4px}
@@ -285,6 +300,22 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 /* INFO BOX */
 .info-box{background:rgba(127,255,110,.06);border:1px solid rgba(127,255,110,.2);border-radius:var(--rsm);padding:10px 12px;font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.5}
 
+/* PAYMENT METHOD SELECTOR */
+.pay-method-wrap{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px}
+.pay-btn{padding:10px 6px;border-radius:var(--rsm);border:1.5px solid var(--border);background:transparent;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.pay-btn .pbi{font-size:18px}
+.pay-btn.sel-card{border-color:var(--orange);color:var(--orange);background:rgba(255,179,71,.08)}
+.pay-btn.sel-cash{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,.08)}
+
+/* FORECAST / CONFIRMED TAGS */
+.tag-forecast{background:rgba(79,195,247,.12);color:var(--blue);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600}
+.tag-confirmed{background:rgba(93,240,160,.1);color:var(--green);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600}
+.tag-card-spend{background:rgba(255,179,71,.12);color:var(--orange);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600}
+
+/* FORECAST ROW DIMMING */
+.tx-item.is-forecast{opacity:.72}
+.tx-item.is-forecast .tx-nm{font-style:italic}
+
 /* TOAST */
 .toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:8px 15px;font-size:12px;font-weight:500;opacity:0;transition:all .3s;z-index:400;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -318,40 +349,83 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 
 <!-- PAGE: HOME -->
 <div id="page-home" class="page on">
+
+  <!-- HERO: saldo + métricas -->
   <div class="hero">
-    <div class="h-lbl">Saldo do Mês</div>
-    <div class="h-amt" id="hAmt">R$ 0,00</div>
-    <div class="h-grid">
-      <div class="h-item"><div class="lbl">Entradas</div><div class="val v-inc" id="hInc">R$ 0,00</div></div>
-      <div class="h-item"><div class="lbl">Gastos</div><div class="val v-exp" id="hExp">R$ 0,00</div></div>
-      <div class="h-item"><div class="lbl">Investido</div><div class="val v-inv" id="hInv">R$ 0,00</div></div>
-      <div class="h-item"><div class="lbl">Fatura CC</div><div class="val v-cc" id="hCC">R$ 0,00</div></div>
+    <div class="hero-bal">
+      <div class="hero-eyebrow">
+        <span class="hero-dot"></span>
+        <span class="hero-lbl">Saldo do mês</span>
+      </div>
+      <div class="hero-amt" id="hAmt">R$ 0,00</div>
+      <div class="hero-sub">
+        <span id="hSubText">Nenhum dado ainda</span>
+        <span class="hero-badge badge-neu" id="hBadge">—</span>
+      </div>
     </div>
-    <div class="prog-wrap">
-      <div class="prog-info"><span>Uso do orçamento</span><span id="progPct">0%</span></div>
-      <div class="prog-track"><div class="prog-fill" id="progBar" style="width:0%"></div></div>
+    <div class="hero-bar-wrap">
+      <div class="hero-bar-row">
+        <span class="hero-bar-lbl">Comprometido do orçamento</span>
+        <span class="hero-bar-pct" id="progPct" style="color:var(--accent)">0%</span>
+      </div>
+      <div class="hero-track"><div class="hero-fill" id="progBar" style="width:0%"></div></div>
+    </div>
+    <div class="hero-grid">
+      <div class="hg-cell">
+        <div class="hg-lbl"><span class="hg-dot" style="background:var(--green)"></span>Entradas</div>
+        <div class="hg-val v-inc" id="hInc">R$ 0,00</div>
+        <div class="hg-sub" id="hIncSub">—</div>
+      </div>
+      <div class="hg-cell">
+        <div class="hg-lbl"><span class="hg-dot" style="background:var(--red)"></span>Gastos</div>
+        <div class="hg-val v-exp" id="hExp">R$ 0,00</div>
+        <div class="hg-sub" id="hExpSub">—</div>
+      </div>
+      <div class="hg-cell">
+        <div class="hg-lbl"><span class="hg-dot" style="background:var(--accent)"></span>Investido</div>
+        <div class="hg-val v-inv" id="hInv">R$ 0,00</div>
+        <div class="hg-sub" id="hInvSub">—</div>
+      </div>
+      <div class="hg-cell">
+        <div class="hg-lbl"><span class="hg-dot" style="background:var(--orange)"></span>Fatura CC</div>
+        <div class="hg-val v-cc" id="hCC">R$ 0,00</div>
+        <div class="hg-sub" id="hCCSub">—</div>
+      </div>
     </div>
   </div>
 
-  <!-- CC PANEL -->
+  <!-- PATRIMÔNIO LÍQUIDO -->
+  <div id="nwBar" class="nw-bar" style="margin-top:10px;display:none">
+    <div class="nw-ico">🏦</div>
+    <div class="nw-info">
+      <div class="nw-top">
+        <span class="nw-lbl">Patrimônio líquido</span>
+        <span class="nw-val" id="nwVal">R$ 0,00</span>
+      </div>
+      <div class="nw-track" id="nwTrack"></div>
+      <div class="nw-legend" id="nwLegend"></div>
+    </div>
+  </div>
+
+  <!-- CARTÕES DE CRÉDITO -->
   <div class="cc-panel" id="ccPanel" style="display:none">
     <div class="cc-ph">
-      <h3>Cartões de Crédito</h3>
+      <h3>💳 Cartões</h3>
       <span class="cc-total-tag" id="ccTotalTag"></span>
     </div>
     <div id="ccRows"></div>
   </div>
 
-  <!-- BANKS -->
+  <!-- BANCOS -->
   <div class="stitle">
-    <h2>Bancos & Carteiras</h2>
-    <button class="btn-sm" onclick="openModal('bankModal')">+ Banco</button>
+    <h2>Contas & Carteiras</h2>
+    <button class="btn-sm" onclick="openModal('bankModal')">+ Conta</button>
   </div>
   <div class="banks-scroll" id="banksScroll">
     <div class="add-bank" onclick="openModal('bankModal')"><span>＋</span><span>Adicionar</span></div>
   </div>
 
-  <!-- TRANSACTIONS -->
+  <!-- LANÇAMENTOS -->
   <div class="stitle" style="padding-bottom:6px">
     <h2>Lançamentos</h2>
     <button class="btn-sm" onclick="openModal('txModal')">+ Novo</button>
@@ -565,6 +639,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       <input type="number" id="txAmt" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
     </div>
 
+    <!-- PAYMENT METHOD (expense only) -->
+    <div class="fg" id="txPayMethodWrap" style="display:block">
+      <label>Forma de Pagamento</label>
+      <div class="pay-method-wrap">
+        <button class="pay-btn sel-card" id="payBtnCard" onclick="setPayMethod('card')">
+          <span class="pbi">💳</span>Cartão de Crédito
+        </button>
+        <button class="pay-btn" id="payBtnCash" onclick="setPayMethod('cash')">
+          <span class="pbi">💵</span>Dinheiro / Pix
+        </button>
+      </div>
+      <div id="txPayMethodInfo" class="info-box" style="display:none;margin-top:6px"></div>
+    </div>
+
     <!-- CATEGORY -->
     <div class="fg" id="txCatWrap">
       <label>Categoria</label>
@@ -692,6 +780,7 @@ let currentBankId = null;
 let txType = 'expense';
 let txRecur = false;
 let txParcel = false;
+let payMethod = 'card'; // 'card' | 'cash' — only for expenses
 let bankEmoji = '🏦';
 let bkCCOn = false;
 let activeFilter = 'all';
@@ -764,34 +853,92 @@ function bankNetWorth(bk){
 // For display: we sum all cc-type expenses linked to that bank that haven't been paid yet.
 // Simplified: ccInvoice on the bank = the manually-set base, and txs of type expense with bankId add to it.
 
-// Get computed running invoice (base + all unpaid expense txs on CC)
-// We treat the ccInvoice field as the "pre-existing" amount before tracked txs.
-// All expense txs on a CC bank add to fatura; cc_payment txs reduce it.
+// Get computed running invoice (base + all unpaid card expense txs on CC bank)
+// Cash expenses on a CC bank do NOT go to the invoice
+// Card expenses use ccInvoiceMonth if set, otherwise use the spend month
 function computeCCInvoice(bkId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk||!bk.hasCC) return 0;
   const base = bk.ccInvoice||0;
-  const expenseTxs = S.transactions.filter(t=>t.type==='expense'&&t.bankId===bkId);
+  // Only card expenses go to the invoice
+  const expenseTxs = S.transactions.filter(t=>
+    t.type==='expense' && t.bankId===bkId && (t.payMethod==='card'||!t.payMethod)
+  );
   const payments = S.transactions.filter(t=>t.type==='cc_payment'&&t.ccBankId===bkId);
   const totalExp = expenseTxs.reduce((s,t)=>s+t.amount,0);
   const totalPay = payments.reduce((s,t)=>s+t.amount,0);
   return Math.max(0, base + totalExp - totalPay);
 }
 
-// Which month will a CC invoice close into (i.e., become a "due" for)?
-// If today's date < closeDay → invoice closes this month, due next month
-// If today's date >= closeDay → invoice already closed, new cycle
+// Which month will a CC invoice be due?
+// If today's date <= closeDay → invoice still open this cycle, due this same month (dueDay)
+// If today's date > closeDay → invoice already closed, next cycle due next month
 function ccInvoiceMonthKey(bk){
   const now = new Date();
   const closeDay = bk.ccCloseDay||15;
   if(now.getDate() <= closeDay){
-    return mkey(now.getFullYear(), now.getMonth()+2 <= 12 ? now.getMonth()+2 : 1);
+    // Still within current cycle → vencimento is this month
+    return mkey(now.getFullYear(), now.getMonth()+1);
   } else {
-    // already past close → this cycle closes next month
+    // Past close → vencimento is next month
     let m = now.getMonth()+2; let y = now.getFullYear();
     if(m>12){m-=12;y++;}
     return mkey(y,m);
   }
+}
+
+// ── PAYMENT METHOD ────────────────────────────────────
+function setPayMethod(method){
+  payMethod = method;
+  document.getElementById('payBtnCard').className = 'pay-btn' + (method==='card'?' sel-card':'');
+  document.getElementById('payBtnCash').className = 'pay-btn' + (method==='cash'?' sel-cash':'');
+  updatePayMethodInfo();
+  updateParcelWrap();
+  onTxBankChange();
+}
+
+function updatePayMethodInfo(){
+  const infoEl = document.getElementById('txPayMethodInfo');
+  if(!infoEl) return;
+  if(payMethod==='card'){
+    const bkId = document.getElementById('txBank').value;
+    const bk = S.banks.find(b=>b.id===bkId);
+    if(bk && bk.hasCC){
+      infoEl.style.display='block';
+      const closeDay = bk.ccCloseDay||15;
+      infoEl.textContent = `💳 O gasto aparece no dia que você gastou, mas será descontado junto da fatura (fecha dia ${closeDay}).`;
+    } else {
+      infoEl.style.display='none';
+    }
+  } else {
+    infoEl.style.display='none';
+  }
+}
+
+// ── FORECAST LOGIC ────────────────────────────────────
+// A transaction is "confirmed" (real spend) if its date <= today
+// It is "forecast" if its date is in the future
+function isForecast(tx){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const txDate = new Date(tx.date+'T00:00:00');
+  // Income with future date = forecast (salary not yet received)
+  if(tx.type==='income') return txDate > today;
+  // CC card expenses: confirmed if date <= today (we record on spend day)
+  // but billing happens on invoice close day — the spend itself is confirmed if date <= today
+  if(tx.type==='expense') return txDate > today;
+  return false;
+}
+
+// For a CC card expense, compute which invoice month it belongs to
+// The spend is recorded on the spend date, but the deduction is in the invoice month
+function ccExpenseInvoiceMonth(tx, bk){
+  if(!bk || !bk.hasCC || tx.payMethod !== 'card') return null;
+  const d = new Date(tx.date+'T12:00:00');
+  let m = d.getMonth(); let y = d.getFullYear();
+  const closeDay = bk.ccCloseDay||15;
+  // If spend day > closeDay → goes to NEXT invoice cycle
+  if(d.getDate() > closeDay){ m++; if(m>11){m=0;y++;} }
+  return mkey(y, m+1);
 }
 
 // ════════════════════════════════════════════════════════
@@ -980,23 +1127,30 @@ function setTxType(t){
   document.getElementById('txBankLabel').textContent = t==='cc_payment'?'Banco de origem (débito)':'Banco';
   // CC pay: populate cc banks
   if(t==='cc_payment') populateCCBankSelect();
+  // Payment method: only for expenses
+  const pmWrap = document.getElementById('txPayMethodWrap');
+  if(pmWrap) pmWrap.style.display = t==='expense'?'block':'none';
   updateParcelWrap();
+  updatePayMethodInfo();
 }
 
 function onTxBankChange(){
   const bkId = document.getElementById('txBank').value;
   const bk = S.banks.find(b=>b.id===bkId);
   const isCC = bk && bk.hasCC;
-  document.getElementById('txCCInfo').style.display = (txType==='expense'&&isCC)?'block':'none';
+  // Show the "will be added to invoice" note only if paying by card on a CC bank
+  document.getElementById('txCCInfo').style.display = (txType==='expense'&&isCC&&payMethod==='card')?'block':'none';
   updateParcelWrap();
+  updatePayMethodInfo();
 }
 
 function updateParcelWrap(){
   const bkId = document.getElementById('txBank').value;
   const bk = S.banks.find(b=>b.id===bkId);
   const isCC = bk && bk.hasCC;
-  document.getElementById('txParcelWrap').style.display = (txType==='expense'&&isCC)?'block':'none';
-  if(!(txType==='expense'&&isCC)){
+  const showParcel = txType==='expense' && isCC && payMethod==='card';
+  document.getElementById('txParcelWrap').style.display = showParcel?'block':'none';
+  if(!showParcel){
     txParcel=false;
     document.getElementById('parcelTog').classList.remove('on');
     document.getElementById('parcelQtdWrap').style.display='none';
@@ -1014,7 +1168,7 @@ function toggleParcel(){
 }
 
 function resetTxForm(){
-  txType='expense'; txRecur=false; txParcel=false;
+  txType='expense'; txRecur=false; txParcel=false; payMethod='card';
   document.getElementById('txModalTitle').textContent='Novo Lançamento';
   document.getElementById('txAmt').value='';
   document.getElementById('txName').value='';
@@ -1031,6 +1185,15 @@ function resetTxForm(){
   document.getElementById('txParcelWrap').style.display='none';
   document.getElementById('txCatWrap').style.display='block';
   document.getElementById('txBankLabel').textContent='Banco';
+  // Reset pay method buttons
+  const pc = document.getElementById('payBtnCard');
+  const pk = document.getElementById('payBtnCash');
+  if(pc) pc.className='pay-btn sel-card';
+  if(pk) pk.className='pay-btn';
+  const pmWrap = document.getElementById('txPayMethodWrap');
+  if(pmWrap) pmWrap.style.display='block';
+  const pmInfo = document.getElementById('txPayMethodInfo');
+  if(pmInfo) pmInfo.style.display='none';
   setTxType('expense');
 }
 
@@ -1101,7 +1264,7 @@ function saveTx(){
     const k=mkey(d.getFullYear(),d.getMonth()+1);
     const idx=S.transactions.findIndex(t=>t.id===editingTxId);
     if(idx>-1){
-      S.transactions[idx]={...S.transactions[idx],type:txType,name,amount,category,bankId,date,month:k,recurrent:txRecur};
+      S.transactions[idx]={...S.transactions[idx],type:txType,name,amount,category,bankId,date,month:k,recurrent:txRecur,payMethod:txType==='expense'?payMethod:'cash'};
     }
     showToast('✅ Atualizado');
     save(); closeModal('txModal'); renderHome();
@@ -1114,19 +1277,25 @@ function saveTx(){
     const group=uid();
     const bk = S.banks.find(b=>b.id===bankId);
     for(let i=0;i<qtd;i++){
+      // Card parcels: first parcel on spend month (or next if after close day), rest +1 each
       let m=d.getMonth()+i; let y=d.getFullYear();
-      // If bank has CC, shift by close day logic: if day >= closeDay, first parcel goes to next month
       if(bk&&bk.hasCC&&i===0&&d.getDate()>bk.ccCloseDay){
         m = d.getMonth()+1; y = d.getFullYear();
         if(m>11){m=0;y++;}
+      } else if(bk&&bk.hasCC&&i>0){
+        // subsequent parcels follow the first
+        const baseM = d.getDate()>bk.ccCloseDay ? d.getMonth()+1 : d.getMonth();
+        m = baseM + i; y = d.getFullYear();
       }
       while(m>11){m-=12;y++;}
       const fd=new Date(y,m,d.getDate());
       const fk=mkey(fd.getFullYear(),fd.getMonth()+1);
+      // Each parcel: record date as the original spend date but month as the invoice month
       S.transactions.push({
         id:uid(),type:'expense',name,amount:parcelAmt,category,bankId,bankToId:'',
         date:fd.toISOString().slice(0,10),month:fk,
-        recurrent:false,parcelGroup:group,parcelIndex:i+1,parcelTotal:qtd
+        recurrent:false,parcelGroup:group,parcelIndex:i+1,parcelTotal:qtd,
+        payMethod:'card',spendDate:date
       });
     }
     showToast(`✅ ${qtd}x de ${fmt(parcelAmt)}`);
@@ -1138,24 +1307,32 @@ function saveTx(){
       const fk=mkey(fd.getFullYear(),fd.getMonth()+1);
       S.transactions.push({
         id:uid(),type:txType,name,amount,category,bankId,bankToId:'',
-        date:fd.toISOString().slice(0,10),month:fk,recurrent:true
+        date:fd.toISOString().slice(0,10),month:fk,recurrent:true,
+        payMethod:txType==='expense'?payMethod:'cash'
       });
     }
     showToast('✅ 12 meses de recorrência criados');
   } else {
-    let txMonth = d.getMonth(); let txYear = d.getFullYear();
     const bankToId=txType==='transfer'?document.getElementById('txBankTo').value:'';
-    // CC expense: if date is after close day, goes to next month's invoice
-    if(txType==='expense' && bankId){
+    const effPayMethod = txType==='expense' ? payMethod : 'cash';
+
+    // For card expenses on a CC bank: the transaction is recorded on the SPEND DATE (for visibility)
+    // but the invoice month (ccInvoiceMonth) tells us which billing cycle it falls into.
+    // The month field = the spend month (so it shows in the list for the month you spent it).
+    const k=mkey(d.getFullYear(),d.getMonth()+1);
+    let ccInvoiceMonth = null;
+    if(txType==='expense' && effPayMethod==='card' && bankId){
       const bkForCC = S.banks.find(b=>b.id===bankId);
-      if(bkForCC && bkForCC.hasCC && d.getDate() > bkForCC.ccCloseDay){
-        txMonth++; if(txMonth>11){txMonth=0;txYear++;}
+      if(bkForCC && bkForCC.hasCC){
+        ccInvoiceMonth = ccExpenseInvoiceMonth({date, payMethod:'card'}, bkForCC);
       }
     }
-    const k=mkey(txYear,txMonth+1);
+
     S.transactions.push({
       id:uid(),type:txType,name,amount,category,bankId,bankToId,
-      date,month:k,recurrent:false
+      date,month:k,recurrent:false,
+      payMethod:effPayMethod,
+      ...(ccInvoiceMonth ? {ccInvoiceMonth} : {})
     });
     showToast('✅ Lançamento salvo');
   }
@@ -1168,6 +1345,7 @@ function openEditTx(id){
   const t=S.transactions.find(x=>x.id===id);
   if(!t) return;
   txType=t.type; txRecur=t.recurrent||false; txParcel=false;
+  payMethod=t.payMethod||(t.type==='expense'?'card':'cash');
   document.getElementById('txModalTitle').textContent='Editar Lançamento';
   document.getElementById('txAmt').value=t.amount;
   document.getElementById('txName').value=t.name;
@@ -1175,6 +1353,11 @@ function openEditTx(id){
   document.getElementById('txCat').value=t.category||'💰 Outros';
   document.getElementById('btnDelTx').style.display='block';
   document.getElementById('recurTog').classList.toggle('on',txRecur);
+  // Restore payment method buttons
+  const pc=document.getElementById('payBtnCard');
+  const pk=document.getElementById('payBtnCash');
+  if(pc) pc.className='pay-btn'+(payMethod==='card'?' sel-card':'');
+  if(pk) pk.className='pay-btn'+(payMethod==='cash'?' sel-cash':'');
   populateBankSelects();
   document.getElementById('txBank').value=t.bankId||'';
   document.getElementById('txBankTo').value=t.bankToId||'';
@@ -1275,74 +1458,162 @@ function openInvTx(){
 function renderHome(){
   document.getElementById('mlbl').textContent=MONTHS[S.currentMonth].slice(0,3)+' '+S.currentYear;
   const allTxs=getMonthTxs();
-  const income=allTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-  const expense=allTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-  const invested=allTxs.filter(t=>t.type==='investment').reduce((s,t)=>s+t.amount,0);
-  // CC invoices: sum the computed invoice for all CC banks
-  const ccTotal = S.banks.filter(b=>b.hasCC).reduce((s,b)=>s+computeCCInvoice(b.id),0);
-  const balance=income-expense;
 
-  const hAmt=document.getElementById('hAmt');
-  hAmt.textContent=fmt(balance);
-  hAmt.className='h-amt'+(balance<0?' neg':'');
-  document.getElementById('hInc').textContent=fmt(income);
-  document.getElementById('hExp').textContent=fmt(expense);
-  document.getElementById('hInv').textContent=fmt(invested);
-  document.getElementById('hCC').textContent=fmt(ccTotal);
+  // Separate confirmed vs forecast
+  const confirmedExp = allTxs.filter(t=>t.type==='expense'&&!isForecast(t));
+  const forecastExp  = allTxs.filter(t=>t.type==='expense'&&isForecast(t));
+  const confirmedInc = allTxs.filter(t=>t.type==='income'&&!isForecast(t));
+  const forecastInc  = allTxs.filter(t=>t.type==='income'&&isForecast(t));
 
-  const pct=income>0?Math.min(100,Math.round(expense/income*100)):0;
-  document.getElementById('progPct').textContent=pct+'%';
-  const bar=document.getElementById('progBar');
-  bar.style.width=pct+'%';
-  bar.style.background=pct>90?'var(--red)':pct>70?'var(--orange)':'var(--accent)';
+  const income   = allTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense  = allTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const invested = allTxs.filter(t=>t.type==='investment').reduce((s,t)=>s+t.amount,0);
+  const ccTotal  = S.banks.filter(b=>b.hasCC).reduce((s,b)=>s+computeCCInvoice(b.id),0);
+  const balance  = income - expense;
 
+  // ── Hero balance ──
+  const hAmt = document.getElementById('hAmt');
+  hAmt.textContent = fmt(balance);
+  hAmt.className = 'hero-amt' + (balance < 0 ? ' neg' : '');
+
+  // sub text: savings rate or warning
+  const subEl = document.getElementById('hSubText');
+  const badgeEl = document.getElementById('hBadge');
+  if(income > 0){
+    const savingsRate = Math.round((balance / income) * 100);
+    subEl.textContent = 'Taxa de poupança este mês';
+    badgeEl.textContent = (savingsRate >= 0 ? '+' : '') + savingsRate + '%';
+    badgeEl.className = 'hero-badge ' + (savingsRate >= 20 ? 'badge-pos' : savingsRate >= 0 ? 'badge-neu' : 'badge-neg');
+  } else {
+    subEl.textContent = 'Sem entradas registradas';
+    badgeEl.textContent = '—';
+    badgeEl.className = 'hero-badge badge-neu';
+  }
+
+  // ── Budget bar ──
+  const pct = income > 0 ? Math.min(100, Math.round(expense / income * 100)) : 0;
+  const pctEl = document.getElementById('progPct');
+  pctEl.textContent = pct + '%';
+  pctEl.style.color = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
+  const bar = document.getElementById('progBar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
+
+  // ── Metric cells ──
+  document.getElementById('hInc').textContent = fmt(income);
+  const fInc = forecastInc.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('hIncSub').textContent = fInc > 0 ? `+${fmt(fInc)} previsto` : confirmedInc.length + ' lançamento' + (confirmedInc.length!==1?'s':'');
+
+  document.getElementById('hExp').textContent = fmt(expense);
+  const fExp = forecastExp.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('hExpSub').textContent = fExp > 0 ? fmt(fExp) + ' previsto' : confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
+
+  document.getElementById('hInv').textContent = fmt(invested);
+  const invPct = income > 0 ? Math.round(invested/income*100) : 0;
+  document.getElementById('hInvSub').textContent = invested > 0 ? invPct + '% da renda' : 'Nenhum este mês';
+
+  document.getElementById('hCC').textContent = fmt(ccTotal);
+  const ccBanks = S.banks.filter(b=>b.hasCC);
+  document.getElementById('hCCSub').textContent = ccBanks.length > 0
+    ? ccBanks.length + ' cartão' + (ccBanks.length!==1?'s':'')
+    : 'Sem cartões';
+
+  // ── Net worth bar ──
+  renderNWBar();
   renderCCPanel();
   renderBanksScroll();
   renderTxList(allTxs, 'txList');
 }
 
+function renderNWBar(){
+  const nwBarEl = document.getElementById('nwBar');
+  if(!S.banks.length){ nwBarEl.style.display='none'; return; }
+  nwBarEl.style.display='flex';
+
+  const totalBalance = S.banks.reduce((s,b)=>s+(b.balance||0),0);
+  const totalInv     = S.banks.reduce((s,b)=>s+(b.investment||0),0);
+  const totalCC      = S.banks.filter(b=>b.hasCC).reduce((s,b)=>s+computeCCInvoice(b.id),0);
+  const netWorth     = totalBalance + totalInv - totalCC;
+
+  document.getElementById('nwVal').textContent = fmt(netWorth);
+  document.getElementById('nwVal').style.color = netWorth < 0 ? 'var(--red)' : 'var(--accent)';
+
+  // Proportional bar segments
+  const total = totalBalance + totalInv + totalCC || 1;
+  const bPct  = Math.round(totalBalance/total*100);
+  const iPct  = Math.round(totalInv/total*100);
+  const cPct  = Math.max(0, 100 - bPct - iPct);
+  const track = document.getElementById('nwTrack');
+  track.innerHTML =
+    (totalBalance>0 ? `<div class="nw-seg" style="width:${bPct}%;background:var(--blue)"></div>` : '') +
+    (totalInv>0     ? `<div class="nw-seg" style="width:${iPct}%;background:var(--accent)"></div>` : '') +
+    (totalCC>0      ? `<div class="nw-seg" style="width:${cPct}%;background:var(--red);opacity:.6"></div>` : '');
+
+  const legend = document.getElementById('nwLegend');
+  legend.innerHTML =
+    (totalBalance>0 ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--blue)"></div>Conta ${fmt(totalBalance)}</div>` : '') +
+    (totalInv>0     ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--accent)"></div>Invest. ${fmt(totalInv)}</div>` : '') +
+    (totalCC>0      ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--red)"></div>Fatura ${fmt(totalCC)}</div>` : '');
+}
+
 function renderCCPanel(){
-  const ccs=S.banks.filter(b=>b.hasCC);
-  const panel=document.getElementById('ccPanel');
-  if(!ccs.length){panel.style.display='none';return;}
+  const ccs = S.banks.filter(b=>b.hasCC);
+  const panel = document.getElementById('ccPanel');
+  if(!ccs.length){ panel.style.display='none'; return; }
   panel.style.display='block';
-  const totalFatura=ccs.reduce((s,c)=>s+computeCCInvoice(c.id),0);
-  const totalLimite=ccs.reduce((s,c)=>s+(c.ccLimit||0),0);
-  document.getElementById('ccTotalTag').textContent='Fatura: '+fmt(totalFatura)+(totalLimite>0?' / Limite: '+fmt(totalLimite):'');
-  document.getElementById('ccRows').innerHTML=ccs.map(cc=>{
-    const inv=computeCCInvoice(cc.id);
-    const pct=cc.ccLimit>0?Math.min(100,Math.round(inv/cc.ccLimit*100)):0;
-    const barColor=pct>80?'var(--red)':pct>60?'var(--orange)':'var(--blue)';
+
+  const totalFatura = ccs.reduce((s,c)=>s+computeCCInvoice(c.id),0);
+  document.getElementById('ccTotalTag').textContent = fmt(totalFatura);
+
+  const now = new Date();
+  document.getElementById('ccRows').innerHTML = ccs.map(cc=>{
+    const inv   = computeCCInvoice(cc.id);
+    const pct   = cc.ccLimit>0 ? Math.min(100,Math.round(inv/cc.ccLimit*100)) : 0;
+    const barColor = pct>80 ? 'var(--red)' : pct>60 ? 'var(--orange)' : 'var(--blue)';
+
+    // Days until close
+    const closeDay = cc.ccCloseDay || 15;
+    let daysToClose = closeDay - now.getDate();
+    if(daysToClose < 0){
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+      daysToClose = daysInMonth - now.getDate() + closeDay;
+    }
+    const urgencyClass = daysToClose <= 3 ? 'cc-urg-danger' : daysToClose <= 7 ? 'cc-urg-warn' : 'cc-urg-ok';
+    const urgencyLabel = daysToClose === 0 ? 'Fecha hoje' : `Fecha em ${daysToClose}d`;
+
     return `<div class="cc-row" onclick="openBankDetail('${cc.id}')">
       <div class="cc-ri">${cc.icon}</div>
       <div class="cc-rinfo">
         <div class="cc-rname">${cc.name}</div>
-        <div class="cc-rbank cc-dates">Fecha dia ${cc.ccCloseDay} · Vence dia ${cc.ccDueDay}</div>
+        <div class="cc-dates">Vence dia ${cc.ccDueDay}</div>
         ${cc.ccLimit>0?`<div class="cc-rbar-wrap"><div class="cc-rbar-track"><div class="cc-rbar-fill" style="width:${pct}%;background:${barColor}"></div></div><span style="font-size:9px;color:var(--t2)">${pct}%</span></div>`:''}
       </div>
-      <div style="text-align:right">
+      <div class="cc-rright">
         <div class="cc-ramt">${fmt(inv)}</div>
-        ${cc.ccLimit>0?`<div style="font-size:9px;color:var(--t2)">/ ${fmt(cc.ccLimit)}</div>`:''}
+        ${cc.ccLimit>0?`<div class="cc-rlimit">de ${fmt(cc.ccLimit)}</div>`:''}
+        <div class="cc-urgency ${urgencyClass}">${urgencyLabel}</div>
       </div>
     </div>`;
   }).join('');
 }
 
 function renderBanksScroll(){
-  const scroll=document.getElementById('banksScroll');
-  const cards=S.banks.map(bk=>{
-    const net=bankNetWorth(bk);
-    const color=bk.color||'var(--accent)';
-    const inv=bk.hasCC?computeCCInvoice(bk.id):0;
+  const scroll = document.getElementById('banksScroll');
+  const cards = S.banks.map(bk=>{
+    const net   = bankNetWorth(bk);
+    const color = bk.color || 'var(--accent)';
+    const inv   = bk.hasCC ? computeCCInvoice(bk.id) : 0;
+    const subText = bk.hasCC ? `Fatura: ${fmt(inv)}` : `Saldo: ${fmt(bk.balance||0)}`;
+    const subColor = bk.hasCC ? 'var(--orange)' : 'var(--t3)';
     return `<div class="bank-card" onclick="openBankDetail('${bk.id}')">
       <div class="bc-accent-bar" style="background:${color}"></div>
       <div class="bc-icon">${bk.icon}</div>
       <div class="bc-name">${bk.name}</div>
       <div class="bc-total" style="color:${color}">${fmt(net)}</div>
-      ${bk.hasCC?`<div class="bc-subs" style="color:var(--orange)">Fatura: ${fmt(inv)}</div>`:'<div class="bc-subs">Sem cartão</div>'}
+      <div class="bc-subs" style="color:${subColor}">${subText}</div>
     </div>`;
   }).join('');
-  scroll.innerHTML=cards+`<div class="add-bank" onclick="openModal('bankModal')"><span>＋</span><span>Novo banco</span></div>`;
+  scroll.innerHTML = cards + `<div class="add-bank" onclick="openModal('bankModal')"><span>＋</span><span>Nova conta</span></div>`;
 }
 
 // ════════════════════════════════════════════════════════
@@ -1378,17 +1649,26 @@ function renderTxList(txs, containerId){
     const cls={expense:'tv-neg',income:'tv-pos',transfer:'tv-neu',investment:'tv-inv',withdrawal:'tv-neu',cc_payment:'tv-ora'}[t.type]||'';
     const parcelTag=t.parcelGroup?`<span class="tag-parcel">Parcela ${t.parcelIndex}/${t.parcelTotal}</span>`:'';
     const recurTag=t.recurrent?'<span class="tag-recur">🔁</span>':'';
+    // Forecast vs confirmed tag
+    const forecast = (t.type==='expense'||t.type==='income') && isForecast(t);
+    const statusTag = forecast
+      ? `<span class="tag-forecast">⏳ Previsão</span>`
+      : (t.type==='expense'||t.type==='income') ? `<span class="tag-confirmed">✓</span>` : '';
+    // Card spend tag
+    const cardTag = (t.type==='expense' && (t.payMethod==='card'||(!t.payMethod && bk && bk.hasCC)))
+      ? `<span class="tag-card-spend">💳 Cartão</span>` : '';
     let bankInfo = bk?`${bk.icon} ${bk.name}`:'';
     if(bkTo) bankInfo += ` → ${bkTo.icon} ${bkTo.name}`;
     if(bkCC) bankInfo += ` · Cartão: ${bkCC.icon} ${bkCC.name}`;
-    html+=`<div class="tx-item" onclick="openEditTx('${t.id}')">
+    const forecastClass = forecast ? ' is-forecast' : '';
+    html+=`<div class="tx-item${forecastClass}" onclick="openEditTx('${t.id}')">
       <div class="tx-ico ico-${t.type}">${catEmoji||TYPE_ICONS[t.type]}</div>
       <div class="tx-inf">
         <div class="tx-nm">${t.name}</div>
         <div class="tx-meta">
           ${t.category&&t.type!=='cc_payment'?`<span class="tag">${t.category}</span>`:''}
           ${bankInfo?`<span>${bankInfo}</span>`:''}
-          ${parcelTag}${recurTag}
+          ${cardTag}${parcelTag}${recurTag}${statusTag}
         </div>
       </div>
       <div class="tx-val ${cls}">${sign} ${fmt(t.amount)}</div>
