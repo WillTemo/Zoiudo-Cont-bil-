@@ -9,7 +9,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Zoiudo">
 <meta name="theme-color" content="#0b0d10">
-<meta name="description" content="Gestão financeira pessoal">
 <link rel="manifest" id="pwaManifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -25,8 +24,6 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column}
-
-/* SCROLLABLE */
 #app{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px}
 #app::-webkit-scrollbar{display:none}
 
@@ -65,12 +62,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 /* BANKS SCROLL */
 .banks-scroll{display:flex;gap:10px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
 .banks-scroll::-webkit-scrollbar{display:none}
-.bank-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;min-width:150px;flex-shrink:0;cursor:pointer;transition:border-color .15s,transform .12s;position:relative}
+.bank-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;min-width:155px;flex-shrink:0;cursor:pointer;transition:border-color .15s,transform .12s;position:relative;overflow:hidden}
 .bank-card:active{transform:scale(.97)}
-.bank-card.selected{border-color:var(--accent)}
-.bc-icon{font-size:22px;margin-bottom:8px}
-.bc-name{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
-.bc-total{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent)}
+.bank-card .bc-accent-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.bc-icon{font-size:22px;margin-bottom:8px;margin-top:4px}
+.bc-name{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:125px}
+.bc-total{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
 .bc-subs{font-size:10px;color:var(--t2);margin-top:3px}
 .add-bank{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:14px;min-width:90px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--t2);font-size:10px;font-weight:500}
 .add-bank:active{border-color:var(--accent)}
@@ -91,6 +88,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .cc-rbar-track{flex:1;height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
 .cc-rbar-fill{height:100%;border-radius:2px}
 .cc-ramt{font-family:'DM Mono',monospace;font-size:12px;color:var(--orange);text-align:right}
+.cc-dates{font-size:9px;color:var(--t2);margin-top:2px}
 
 /* FILTER BAR */
 .fbar{display:flex;gap:7px;padding:0 16px;overflow-x:auto;scrollbar-width:none;margin-bottom:4px}
@@ -109,7 +107,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .tx-item:last-child{border-bottom:none}
 .tx-item:active{opacity:.7}
 .tx-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.ico-expense{background:rgba(255,79,79,.12)}.ico-income{background:rgba(93,240,160,.1)}.ico-transfer{background:rgba(79,195,247,.12)}.ico-investment{background:rgba(127,255,110,.1)}.ico-withdrawal{background:rgba(181,123,238,.12)}
+.ico-expense{background:rgba(255,79,79,.12)}.ico-income{background:rgba(93,240,160,.1)}.ico-transfer{background:rgba(79,195,247,.12)}.ico-investment{background:rgba(127,255,110,.1)}.ico-withdrawal{background:rgba(181,123,238,.12)}.ico-cc_payment{background:rgba(255,179,71,.12)}
 .tx-inf{flex:1;min-width:0}
 .tx-nm{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tx-meta{font-size:10px;color:var(--t2);margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
@@ -117,7 +115,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .tag-recur{background:rgba(79,195,247,.15);color:var(--blue);border-radius:3px;padding:1px 5px;font-size:9px}
 .tag-parcel{background:rgba(255,179,71,.15);color:var(--orange);border-radius:3px;padding:1px 5px;font-size:9px}
 .tx-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;flex-shrink:0;text-align:right}
-.tv-pos{color:var(--green)}.tv-neg{color:var(--red)}.tv-neu{color:var(--blue)}.tv-inv{color:var(--accent)}
+.tv-pos{color:var(--green)}.tv-neg{color:var(--red)}.tv-neu{color:var(--blue)}.tv-inv{color:var(--accent)}.tv-ora{color:var(--orange)}
 .empty{text-align:center;padding:36px 20px;color:var(--t2)}
 .empty .ei{font-size:32px;margin-bottom:8px}
 .empty p{font-size:12px}
@@ -144,6 +142,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .fg input:focus,.fg select:focus{border-color:var(--accent)}
 .fg select option{background:var(--s2)}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
 /* TYPE BUTTONS */
 .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -154,6 +153,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .sel-transfer{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,.08)}
 .sel-investment{border-color:var(--accent);color:var(--accent);background:rgba(127,255,110,.08)}
 .sel-withdrawal{border-color:var(--purple);color:var(--purple);background:rgba(181,123,238,.08)}
+.sel-cc_payment{border-color:var(--orange);color:var(--orange);background:rgba(255,179,71,.08)}
 
 /* TOGGLE ROW */
 .tog-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:var(--rsm);padding:10px 12px;border:1.5px solid var(--border)}
@@ -174,39 +174,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .egrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:12px}
 .ebtn{background:var(--s2);border:1.5px solid transparent;border-radius:6px;font-size:17px;padding:5px;cursor:pointer;text-align:center}
 .ebtn.sel{border-color:var(--accent)}
-
-/* SUB TABS */
-.sub-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.sub-tab{padding:8px 4px;border-radius:var(--rsm);border:1.5px solid var(--border);background:transparent;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
-.sub-tab .sti{font-size:16px}
-.sub-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(127,255,110,.08)}
-.add-sub{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:12px;min-width:90px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--t2);font-size:10px;font-weight:500}
-.add-sub:active{border-color:var(--accent)}
-.add-sub span:first-child{font-size:18px}
-
-/* INV PAGE */
-.invpage{padding:0 16px}
-.inv-summary{background:linear-gradient(135deg,#0e1f12,#0b1420);border:1px solid #203020;border-radius:var(--r);padding:16px;margin-bottom:12px;text-align:center}
-.inv-total-lbl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2);margin-bottom:5px}
-.inv-total{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:32px;color:var(--accent);letter-spacing:-.5px}
-.inv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer}
-.inv-card:active{border-color:var(--accent)}
-.inv-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.inv-ico{width:38px;height:38px;background:rgba(127,255,110,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
-.inv-inf{flex:1}
-.inv-name{font-size:13px;font-weight:600}
-.inv-bank{font-size:10px;color:var(--t2);margin-top:1px}
-.inv-amt{font-family:'DM Mono',monospace;font-size:17px;color:var(--accent)}
-.inv-meta{display:flex;gap:12px}
-.inv-mi .lbl{font-size:9px;color:var(--t2)}
-.inv-mi .val{font-family:'DM Mono',monospace;font-size:11px;margin-top:1px}
-
-/* SUB CARD */
-.sub-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;min-width:118px;flex-shrink:0;cursor:pointer;transition:border-color .15s}
-.sub-card:active{border-color:var(--accent)}
-.sc-type{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:4px}
-.sc-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;margin-bottom:2px}
-.sc-name{font-size:11px;color:var(--t2)}
 
 /* PAGES */
 .page{display:none}.page.on{display:block}
@@ -240,42 +207,42 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 
 /* BANKS PAGE */
 .bkpage{padding:0 16px}
-.bkcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:10px;cursor:pointer}
-.bkcard:active{border-color:var(--accent)}
+.bkcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:10px;cursor:pointer;position:relative;overflow:hidden}
+.bkcard:active{opacity:.85}
+.bkcard .bk-accent{position:absolute;top:0;left:0;bottom:0;width:4px;border-radius:var(--r) 0 0 var(--r)}
 .bkh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .bkico{width:40px;height:40px;background:var(--s2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px}
 .bkinf{flex:1}
 .bkname{font-size:14px;font-weight:600}
-.bktotal{font-family:'DM Mono',monospace;font-size:18px;color:var(--accent)}
-.bksubs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.bksub-tag{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:10px;display:flex;align-items:center;gap:4px}
-.bksub-tag .stval{font-family:'DM Mono',monospace;font-size:11px;margin-left:2px}
+.bktotal{font-family:'DM Mono',monospace;font-size:18px}
+.bk-details{display:flex;flex-wrap:wrap;gap:6px}
+.bk-tag{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:10px;display:flex;align-items:center;gap:4px}
+.bk-tag .stval{font-family:'DM Mono',monospace;font-size:11px;margin-left:2px}
 
 /* BANK DETAIL */
-.bkdetail{padding:0 16px}
 .bkd-header{display:flex;align-items:center;gap:10px;padding:14px 16px 0}
 .back-btn{background:var(--s2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
 .bkd-title{font-family:'Times New Roman',Times,serif;font-style:italic;font-size:18px;font-weight:700}
-.sub-cards{display:flex;gap:10px;padding:0 16px;overflow-x:auto;scrollbar-width:none;margin-bottom:4px}
-.sub-cards::-webkit-scrollbar{display:none}
-.sub-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;min-width:120px;flex-shrink:0;cursor:pointer}
-.sub-card:active{border-color:var(--accent)}
-.sub-card .sc-type{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:4px}
-.sub-card .sc-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
-.sub-card .sc-name{font-size:11px;color:var(--t2);margin-top:2px}
-.add-sub{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:12px;min-width:80px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--t2);font-size:10px}
-.add-sub:active{border-color:var(--accent)}
-.add-sub span:first-child{font-size:18px}
+.bkdetail{padding:0 16px}
 
-/* TOAST */
-.toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:8px 15px;font-size:12px;font-weight:500;opacity:0;transition:all .3s;z-index:400;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* BANK SECTIONS */
+.bksec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.bksec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bksec-title{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2)}
+.bksec-val{font-family:'DM Mono',monospace;font-size:14px}
+
+/* CC DETAIL IN BANK */
+.cc-invoice-block{background:var(--s2);border-radius:10px;padding:12px;margin-bottom:8px}
+.cc-inv-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.cc-inv-row:last-child{margin-bottom:0}
+.cc-inv-lbl{font-size:10px;color:var(--t2)}
+.cc-inv-val{font-family:'DM Mono',monospace;font-size:12px}
 
 /* INVESTMENTS PAGE */
 .invpage{padding:0 16px}
 .inv-summary{background:linear-gradient(135deg,#0e1f12,#0b1420);border:1px solid #203020;border-radius:var(--r);padding:16px;margin-bottom:12px;text-align:center}
 .inv-total-lbl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2);margin-bottom:5px}
-.inv-total{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:32px;color:var(--accent);letter-spacing:-0.5px}
+.inv-total{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:32px;color:var(--accent);letter-spacing:-.5px}
 .inv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:9px;cursor:pointer}
 .inv-card:active{border-color:var(--accent)}
 .inv-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -288,11 +255,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .inv-mi .lbl{font-size:9px;color:var(--t2)}
 .inv-mi .val{font-family:'DM Mono',monospace;font-size:11px;margin-top:1px}
 
-/* SUB ACCOUNT MODAL TABS */
-.sub-tabs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:14px}
-.sub-tab{padding:8px 4px;border-radius:var(--rxs);border:1.5px solid var(--border);background:transparent;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;cursor:pointer;text-align:center;line-height:1.3}
-.sub-tab .sti{font-size:14px;display:block;margin-bottom:2px}
-.sub-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(127,255,110,.08)}
+/* INFO BOX */
+.info-box{background:rgba(127,255,110,.06);border:1px solid rgba(127,255,110,.2);border-radius:var(--rsm);padding:10px 12px;font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.5}
+
+/* TOAST */
+.toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:8px 15px;font-size:12px;font-weight:500;opacity:0;transition:all .3s;z-index:400;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -302,17 +270,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 <div class="hdr">
   <div class="logo">
     <svg class="logo-mark" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="19" cy="19" r="17" fill="#0e1a0e" stroke="#2a4a2a" stroke-width="1.2"/>
-      <path d="M5 19 Q19 4 33 19" stroke="#7fff6e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-      <path d="M5 19 Q19 34 33 19" stroke="#7fff6e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-      <ellipse cx="19" cy="19" rx="9" ry="9" fill="#e8f0e8"/>
-      <circle cx="19" cy="19" r="6.5" fill="#1a3a1a"/>
-      <circle cx="19" cy="19" r="6.5" fill="none" stroke="#7fff6e" stroke-width="1.5" opacity="0.7"/>
-      <circle cx="19" cy="19" r="3.8" fill="#0b0d10"/>
-      <circle cx="21.5" cy="16.8" r="1.3" fill="white" opacity="0.9"/>
-      <circle cx="17.5" cy="21" r="0.6" fill="white" opacity="0.5"/>
-      <circle cx="30.5" cy="30.5" r="5.5" fill="#c8a000" opacity="0.95"/>
-      <text x="30.5" y="33.5" text-anchor="middle" font-size="6.5" fill="#fff" font-weight="bold" font-family="sans-serif">R$</text>
+      <!-- minimalist eye outline -->
+      <path d="M4 19 Q19 7 34 19 Q19 31 4 19Z" stroke="#7fff6e" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <!-- iris -->
+      <circle cx="19" cy="19" r="5.5" fill="none" stroke="#7fff6e" stroke-width="1.6"/>
+      <!-- pupil -->
+      <circle cx="19" cy="19" r="2.2" fill="#7fff6e"/>
     </svg>
     <div class="logo-text">
       <div class="t1">Zoiudo</div>
@@ -376,7 +339,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <div class="fchip" data-f="income" onclick="setFilter('income',this)">Entradas</div>
     <div class="fchip" data-f="transfer" onclick="setFilter('transfer',this)">Transferências</div>
     <div class="fchip" data-f="investment" onclick="setFilter('investment',this)">Invest.</div>
-    <div class="fchip" data-f="withdrawal" onclick="setFilter('withdrawal',this)">Retiradas</div>
+    <div class="fchip" data-f="cc_payment" onclick="setFilter('cc_payment',this)">Pag. Fatura</div>
   </div>
   <div class="tx-list" id="txList"></div>
 </div>
@@ -387,18 +350,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <button class="back-btn" onclick="switchPage('home',document.querySelector('.ni'))">‹</button>
     <div style="flex:1;padding-left:8px">
       <div class="bkd-title" id="bkdTitle">Banco</div>
-      <div style="font-size:10px;color:var(--t2);margin-top:2px" id="bkdTotal"></div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px" id="bkdSubtitle"></div>
     </div>
     <button class="btn-sm" onclick="editCurrentBank()">Editar</button>
   </div>
 
-  <div class="stitle" style="padding-top:14px">
-    <h2>Sub-contas</h2>
-    <button class="btn-sm" onclick="openModal('subModal')">+ Sub-conta</button>
-  </div>
-  <div class="sub-cards" id="subCards"></div>
+  <div class="stitle" style="padding-top:14px"><h2>Visão Geral</h2></div>
+  <div class="bkdetail" id="bkdSections"></div>
 
-  <div class="stitle" style="padding-top:14px;padding-bottom:6px">
+  <div class="stitle" style="padding-top:4px;padding-bottom:6px">
     <h2>Lançamentos</h2>
     <button class="btn-sm" onclick="openTxForBank()">+ Novo</button>
   </div>
@@ -472,7 +432,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
   <button class="ni" onclick="openModal('txModal')"><span class="ni-icon">＋</span><span class="ni-lbl">Lançar</span></button>
 </div>
 
-<!-- ═══════════════════════════════════ MODAL: BANK ═══ -->
+<!-- ═══════════════════ MODAL: BANK ═══ -->
 <div class="modal-ov" id="bankModal" onclick="closeBg(event,'bankModal')">
   <div class="modal">
     <div class="mhandle"></div>
@@ -494,81 +454,59 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
         <option value="#ff4f4f">Vermelho</option>
         <option value="#b57bee">Roxo</option>
         <option value="#ffd54f">Amarelo</option>
+        <option value="#f48fb1">Rosa</option>
+        <option value="#80cbc4">Verde-água</option>
       </select>
     </div>
+
+    <!-- Saldo inicial -->
+    <div class="fg">
+      <label>Saldo Inicial (R$)</label>
+      <input type="number" id="bkBalance" placeholder="0,00" inputmode="decimal" step="0.01">
+    </div>
+
+    <!-- Investimentos -->
+    <div class="fg">
+      <label>Total Investido (R$)</label>
+      <input type="number" id="bkInvestment" placeholder="0,00" inputmode="decimal" step="0.01">
+    </div>
+
+    <!-- CC -->
+    <div class="fg">
+      <div class="tog-row">
+        <span>💳 Tem cartão de crédito?</span>
+        <button class="tog" id="bkCCTog" onclick="toggleBkCC()"></button>
+      </div>
+    </div>
+    <div id="bkCCExtras" style="display:none">
+      <div class="info-box">💡 A fatura atual conta como gasto no mês seguinte ao fechamento.</div>
+      <div class="fg">
+        <label>Limite do Cartão (R$)</label>
+        <input type="number" id="bkCCLimit" placeholder="0,00" inputmode="decimal" step="0.01">
+      </div>
+      <div class="fg">
+        <label>Fatura Atual (R$) — gastos já acumulados</label>
+        <input type="number" id="bkCCInvoice" placeholder="0,00" inputmode="decimal" step="0.01">
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>Dia de Fechamento</label>
+          <input type="number" id="bkCCClose" placeholder="Ex: 15" inputmode="numeric" min="1" max="31">
+        </div>
+        <div class="fg">
+          <label>Dia de Vencimento</label>
+          <input type="number" id="bkCCDue" placeholder="Ex: 5" inputmode="numeric" min="1" max="31">
+        </div>
+      </div>
+    </div>
+
     <button class="btn-p" onclick="saveBank()">Salvar Banco</button>
     <button class="btn-d" id="btnDelBank" style="display:none" onclick="deleteBank()">Excluir Banco</button>
     <button class="btn-g" onclick="closeModal('bankModal')">Cancelar</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════ MODAL: SUB-ACCOUNT ═══ -->
-<div class="modal-ov" id="subModal" onclick="closeBg(event,'subModal')">
-  <div class="modal">
-    <div class="mhandle"></div>
-    <h3 id="subModalTitle">Nova Sub-conta</h3>
-
-    <div class="fg">
-      <label>Tipo</label>
-      <div class="sub-tabs" id="subTypeTabs">
-        <button class="sub-tab active" data-st="conta" onclick="setSubType('conta',this)"><span class="sti">💰</span>Conta</button>
-        <button class="sub-tab" data-st="cc" onclick="setSubType('cc',this)"><span class="sti">💳</span>Cartão</button>
-        <button class="sub-tab" data-st="investment" onclick="setSubType('investment',this)"><span class="sti">📈</span>Invest.</button>
-        <button class="sub-tab" data-st="savings" onclick="setSubType('savings',this)"><span class="sti">🐷</span>Poupança</button>
-      </div>
-    </div>
-
-    <div class="fg">
-      <label id="subNameLabel">Nome / Apelido</label>
-      <input type="text" id="subName" placeholder="Ex: Conta corrente, Visa…">
-    </div>
-
-    <div class="fg">
-      <label id="subBalLabel">Saldo Atual (R$)</label>
-      <input type="number" id="subBalance" placeholder="0,00" inputmode="decimal" step="0.01">
-    </div>
-
-    <!-- CC extras -->
-    <div id="subCCExtras" style="display:none">
-      <div class="fg">
-        <label>Limite do Cartão (R$)</label>
-        <input type="number" id="subLimit" placeholder="0,00" inputmode="decimal" step="0.01">
-      </div>
-      <div class="fg">
-        <div class="tog-row">
-          <span>Controlar limite de gastos</span>
-          <button class="tog" id="subLimitTog" onclick="toggleSubLimit()"></button>
-        </div>
-      </div>
-      <div class="fg" id="subLimitAlertWrap" style="display:none">
-        <label>Alertar quando fatura passar de (R$)</label>
-        <input type="number" id="subLimitAlert" placeholder="0,00" inputmode="decimal" step="0.01">
-      </div>
-    </div>
-
-    <!-- Investment extras -->
-    <div id="subInvExtras" style="display:none">
-      <div class="fg">
-        <label>Tipo de Investimento</label>
-        <select id="subInvType">
-          <option value="CDB">CDB</option>
-          <option value="Tesouro Direto">Tesouro Direto</option>
-          <option value="Renda Fixa">Renda Fixa</option>
-          <option value="Ações">Ações</option>
-          <option value="FII">FII</option>
-          <option value="Crypto">Crypto</option>
-          <option value="Outro">Outro</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="btn-p" onclick="saveSub()">Salvar Sub-conta</button>
-    <button class="btn-d" id="btnDelSub" style="display:none" onclick="deleteSub()">Excluir Sub-conta</button>
-    <button class="btn-g" onclick="closeModal('subModal')">Cancelar</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════ MODAL: TX ═══ -->
+<!-- ═══════════════════ MODAL: TX ═══ -->
 <div class="modal-ov" id="txModal" onclick="closeBg(event,'txModal')">
   <div class="modal">
     <div class="mhandle"></div>
@@ -583,6 +521,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
         <button class="tbtn" id="tbT" onclick="setTxType('transfer')"><span class="tbi">↔️</span>Transfer.</button>
         <button class="tbtn" id="tbV" onclick="setTxType('investment')"><span class="tbi">📈</span>Investim.</button>
         <button class="tbtn" id="tbW" onclick="setTxType('withdrawal')"><span class="tbi">💸</span>Retirada</button>
+        <button class="tbtn" id="tbP" onclick="setTxType('cc_payment')"><span class="tbi">💳</span>Pag. Fatura</button>
       </div>
     </div>
 
@@ -600,7 +539,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     </div>
 
     <!-- CATEGORY -->
-    <div class="fg">
+    <div class="fg" id="txCatWrap">
       <label>Categoria</label>
       <select id="txCat">
         <optgroup label="Gastos">
@@ -629,30 +568,30 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       </select>
     </div>
 
-    <!-- BANK + SUB -->
-    <div class="frow">
+    <!-- BANK -->
+    <div class="fg">
+      <label id="txBankLabel">Banco</label>
+      <select id="txBank" onchange="onTxBankChange()"></select>
+    </div>
+
+    <!-- CC info (shown when expense on bank with CC) -->
+    <div id="txCCInfo" style="display:none" class="info-box">💳 Este gasto será lançado na fatura do cartão deste banco.</div>
+
+    <!-- TRANSFER: destination bank -->
+    <div id="txToWrap" style="display:none">
       <div class="fg">
-        <label>Banco</label>
-        <select id="txBank" onchange="populateSubSelect()"></select>
-      </div>
-      <div class="fg">
-        <label>Sub-conta</label>
-        <select id="txSub"></select>
+        <label>Banco Destino</label>
+        <select id="txBankTo"></select>
       </div>
     </div>
 
-    <!-- TRANSFER: destination bank+sub -->
-    <div id="txToWrap" style="display:none">
-      <div class="frow">
-        <div class="fg">
-          <label>Banco Destino</label>
-          <select id="txBankTo" onchange="populateSubSelectTo()"></select>
-        </div>
-        <div class="fg">
-          <label>Sub-conta Destino</label>
-          <select id="txSubTo"></select>
-        </div>
+    <!-- CC PAYMENT: select which CC bank -->
+    <div id="txCCPayWrap" style="display:none">
+      <div class="fg">
+        <label>Cartão a pagar</label>
+        <select id="txCCBank"></select>
       </div>
+      <div id="txCCPayInfo" class="info-box" style="margin-top:-5px"></div>
     </div>
 
     <!-- DATE -->
@@ -661,11 +600,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       <input type="date" id="txDate">
     </div>
 
-    <!-- RECURRING (income + expense) -->
+    <!-- RECURRING -->
     <div id="txRecurWrap" style="display:none">
       <div class="fg">
         <div class="tog-row">
-          <span id="recurLabel">🔁 Entrada recorrente (mensal)</span>
+          <span id="recurLabel">🔁 Gasto fixo mensal (repetir)</span>
           <button class="tog" id="recurTog" onclick="toggleRecur()"></button>
         </div>
       </div>
@@ -697,16 +636,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 <script>
 // ════════════════════════════════════════════════════════
 // DATA MODEL
+// Bank {id, name, icon, color,
+//       balance,           ← saldo em conta
+//       investment,        ← valor investido
+//       hasCC,             ← tem cartão?
+//       ccLimit,           ← limite do cartão
+//       ccInvoice,         ← fatura atual (acumulada)
+//       ccCloseDay,        ← dia fechamento
+//       ccDueDay}          ← dia vencimento
+//
+// Tx  {id, type:'expense'|'income'|'transfer'|'investment'|'withdrawal'|'cc_payment',
+//      name, amount, category, bankId, bankToId?,
+//      date, month, recurrent?, parcelGroup?, parcelIndex?, parcelTotal?,
+//      ccBankId?}   ← para cc_payment: banco do cartão pago
 // ════════════════════════════════════════════════════════
-// Bank   {id, name, icon, color}
-// Sub    {id, bankId, type:'conta'|'cc'|'investment'|'savings', name, balance, limit?, limitEnabled?, limitAlert?, invType?}
-// Tx     {id, type:'expense'|'income'|'transfer'|'investment'|'withdrawal',
-//         name, amount, category, bankId, subId, bankToId?, subToId?,
-//         date, month, recurrent?, parcelGroup?, parcelIndex?, parcelTotal?}
 
 let S = {
   banks: [],
-  subs: [],
   transactions: [],
   currentMonth: new Date().getMonth(),
   currentYear: new Date().getFullYear(),
@@ -714,15 +660,13 @@ let S = {
 
 // UI STATE
 let editingBankId = null;
-let editingSubId = null;
 let editingTxId = null;
-let currentBankId = null; // for detail page
+let currentBankId = null;
 let txType = 'expense';
 let txRecur = false;
 let txParcel = false;
-let subType = 'conta';
-let subLimitOn = false;
 let bankEmoji = '🏦';
+let bkCCOn = false;
 let activeFilter = 'all';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -735,32 +679,38 @@ const CAT_COLORS = {
   '🎁 Presente':'#f48fb1','↔️ Transferência':'#4fc3f7','📈 Investimento':'#b0bec5',
   '💸 Retirada':'#ce93d8','💰 Outros':'#90a4ae'
 };
-const SUB_TYPE_LABELS = {conta:'Conta',cc:'Cartão Crédito',investment:'Investimento',savings:'Poupança'};
-const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸'};
+const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸',cc_payment:'💳'};
 
 // ════════════════════════════════════════════════════════
 // STORAGE
 // ════════════════════════════════════════════════════════
-function save(){ localStorage.setItem('zoiudo_v3', JSON.stringify(S)); }
+function save(){ localStorage.setItem('zoiudo_v4', JSON.stringify(S)); }
 function load(){
-  const d = localStorage.getItem('zoiudo_v3');
-  if(d){ try{ S = JSON.parse(d); }catch(e){} }
-  // migrate v2
-  const old = localStorage.getItem('zoiudo_v2');
-  if(old && !d){
+  const d = localStorage.getItem('zoiudo_v4');
+  if(d){ try{ S = JSON.parse(d); }catch(e){} return; }
+  // migrate v3
+  const old3 = localStorage.getItem('zoiudo_v3');
+  if(old3){
     try{
-      const o = JSON.parse(old);
-      // create one generic bank per old account
-      (o.accounts||[]).forEach(a=>{
-        const bk = {id:a.id, name:a.name, icon:a.icon||'🏦', color:'#7fff6e'};
-        S.banks.push(bk);
-        const sub = {id:uid(), bankId:a.id, type:a.type==='cc'?'cc':a.type==='investment'?'investment':'conta',
-          name:a.name, balance:a.balance||0, limit:a.limit||0, limitEnabled:a.limitEnabled||false, limitAlert:a.limitAlert||0};
-        S.subs.push(sub);
+      const o = JSON.parse(old3);
+      // banks from v3 (had subs)
+      (o.banks||[]).forEach(bk=>{
+        const subs = (o.subs||[]).filter(s=>s.bankId===bk.id);
+        const contaSub = subs.find(s=>s.type==='conta')||subs.find(s=>s.type==='savings');
+        const invSub = subs.find(s=>s.type==='investment');
+        const ccSub = subs.find(s=>s.type==='cc');
+        S.banks.push({
+          id:bk.id, name:bk.name, icon:bk.icon||'🏦', color:bk.color||'#7fff6e',
+          balance: contaSub ? (contaSub.balance||0) : 0,
+          investment: invSub ? (invSub.balance||0) : 0,
+          hasCC: !!ccSub,
+          ccLimit: ccSub?(ccSub.limit||0):0,
+          ccInvoice: ccSub?(ccSub.balance||0):0,
+          ccCloseDay: 15, ccDueDay: 5
+        });
       });
       (o.transactions||[]).forEach(t=>{
-        S.transactions.push({...t, bankId:t.accountId||'', subId:t.accountId||'',
-          bankToId:t.accountToId||'', subToId:t.accountToId||''});
+        S.transactions.push({...t, bankToId:t.bankToId||''});
       });
     }catch(e){}
   }
@@ -774,10 +724,49 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 function mkey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function curKey(){ return mkey(S.currentYear, S.currentMonth+1); }
 function getMonthTxs(){ return S.transactions.filter(t=>t.month===curKey()); }
-function bankTotal(bkId){
-  return S.subs.filter(s=>s.bankId===bkId).reduce((sum,s)=>sum+(s.balance||0),0);
+
+// For a bank: "cash" total = balance + investment (but not CC invoice, that's a debt)
+function bankNetWorth(bk){
+  return (bk.balance||0) + (bk.investment||0);
 }
-function subLabel(s){ return SUB_TYPE_LABELS[s.type]||s.type; }
+
+// Compute CC invoice for a specific month key for a given bank
+// The invoice = initial ccInvoice (configured) + all CC expenses in that month - payments in that month
+// But actually we store ccInvoice as a base and transactions update it dynamically.
+// The "current invoice" is the base ccInvoice field + sum of CC expense txs since last payment.
+// For display: we sum all cc-type expenses linked to that bank that haven't been paid yet.
+// Simplified: ccInvoice on the bank = the manually-set base, and txs of type expense with bankId add to it.
+
+// Get computed running invoice (base + all unpaid expense txs on CC)
+// We treat the ccInvoice field as the "pre-existing" amount before tracked txs.
+// All expense txs on a CC bank add to fatura; cc_payment txs reduce it.
+function computeCCInvoice(bkId){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk||!bk.hasCC) return 0;
+  const base = bk.ccInvoice||0;
+  const expenseTxs = S.transactions.filter(t=>t.type==='expense'&&t.bankId===bkId);
+  const payments = S.transactions.filter(t=>t.type==='cc_payment'&&t.ccBankId===bkId);
+  const totalExp = expenseTxs.reduce((s,t)=>s+t.amount,0);
+  const totalPay = payments.reduce((s,t)=>s+t.amount,0);
+  return Math.max(0, base + totalExp - totalPay);
+}
+
+// Which month will a CC invoice close into (i.e., become a "due" for)?
+// If today's date < closeDay → invoice closes this month, due next month
+// If today's date >= closeDay → invoice already closed, new cycle
+function ccInvoiceMonthKey(bk){
+  const now = new Date();
+  const closeDay = bk.ccCloseDay||15;
+  if(now.getDate() < closeDay){
+    // closes this month → due is next month (but expense belongs to next month's budget)
+    return mkey(now.getFullYear(), now.getMonth()+2 <= 12 ? now.getMonth()+2 : 1);
+  } else {
+    // already past close → this cycle closes next month
+    let m = now.getMonth()+2; let y = now.getFullYear();
+    if(m>12){m-=12;y++;}
+    return mkey(y,m);
+  }
+}
 
 // ════════════════════════════════════════════════════════
 // NAVIGATION
@@ -820,7 +809,7 @@ function openTxForBank(){
   populateBankSelects();
   if(currentBankId){
     document.getElementById('txBank').value = currentBankId;
-    populateSubSelect();
+    onTxBankChange();
   }
   openModal('txModal');
 }
@@ -838,20 +827,17 @@ function openModal(id){
     resetTxForm();
     populateBankSelects();
     populateNameSugg();
-    // auto-select first bank for convenience
     if(S.banks.length){
       document.getElementById('txBank').value=S.banks[0].id;
-      populateSubSelect();
+      onTxBankChange();
     }
   }
   if(id==='bankModal' && !editingBankId) resetBankForm();
-  if(id==='subModal' && !editingSubId) resetSubForm();
 }
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
-  if(id==='txModal'){editingTxId=null;}
-  if(id==='bankModal'){editingBankId=null;}
-  if(id==='subModal'){editingSubId=null;}
+  if(id==='txModal') editingTxId=null;
+  if(id==='bankModal') editingBankId=null;
 }
 function closeBg(e,id){ if(e.target===e.currentTarget) closeModal(id); }
 
@@ -863,11 +849,25 @@ function renderBankEmojiGrid(){
     BANK_EMOJIS.map(e=>`<button class="ebtn${e===bankEmoji?' sel':''}" onclick="bankEmoji='${e}';renderBankEmojiGrid()">${e}</button>`).join('');
 }
 
+function toggleBkCC(){
+  bkCCOn = !bkCCOn;
+  document.getElementById('bkCCTog').classList.toggle('on', bkCCOn);
+  document.getElementById('bkCCExtras').style.display = bkCCOn ? 'block' : 'none';
+}
+
 function resetBankForm(){
-  bankEmoji='🏦'; editingBankId=null;
+  bankEmoji='🏦'; editingBankId=null; bkCCOn=false;
   document.getElementById('bankModalTitle').textContent='Novo Banco';
   document.getElementById('bkName').value='';
   document.getElementById('bkColor').value='#7fff6e';
+  document.getElementById('bkBalance').value='';
+  document.getElementById('bkInvestment').value='';
+  document.getElementById('bkCCTog').classList.remove('on');
+  document.getElementById('bkCCExtras').style.display='none';
+  document.getElementById('bkCCLimit').value='';
+  document.getElementById('bkCCInvoice').value='';
+  document.getElementById('bkCCClose').value='';
+  document.getElementById('bkCCDue').value='';
   document.getElementById('btnDelBank').style.display='none';
   renderBankEmojiGrid();
 }
@@ -875,7 +875,18 @@ function resetBankForm(){
 function saveBank(){
   const name = document.getElementById('bkName').value.trim();
   if(!name){showToast('⚠️ Informe o nome');return;}
-  const obj = {id:editingBankId||uid(), name, icon:bankEmoji, color:document.getElementById('bkColor').value};
+  const obj = {
+    id: editingBankId||uid(),
+    name, icon: bankEmoji,
+    color: document.getElementById('bkColor').value,
+    balance: parseFloat(document.getElementById('bkBalance').value)||0,
+    investment: parseFloat(document.getElementById('bkInvestment').value)||0,
+    hasCC: bkCCOn,
+    ccLimit: bkCCOn ? (parseFloat(document.getElementById('bkCCLimit').value)||0) : 0,
+    ccInvoice: bkCCOn ? (parseFloat(document.getElementById('bkCCInvoice').value)||0) : 0,
+    ccCloseDay: bkCCOn ? (parseInt(document.getElementById('bkCCClose').value)||15) : 15,
+    ccDueDay: bkCCOn ? (parseInt(document.getElementById('bkCCDue').value)||5) : 5,
+  };
   if(editingBankId){
     const i=S.banks.findIndex(b=>b.id===editingBankId);
     if(i>-1) S.banks[i]=obj;
@@ -893,10 +904,19 @@ function openEditBank(id){
   editingBankId=id;
   const b=S.banks.find(x=>x.id===id);
   if(!b) return;
-  bankEmoji=b.icon;
+  bankEmoji=b.icon||'🏦';
+  bkCCOn=b.hasCC||false;
   document.getElementById('bankModalTitle').textContent='Editar Banco';
   document.getElementById('bkName').value=b.name;
   document.getElementById('bkColor').value=b.color||'#7fff6e';
+  document.getElementById('bkBalance').value=b.balance||'';
+  document.getElementById('bkInvestment').value=b.investment||'';
+  document.getElementById('bkCCTog').classList.toggle('on',bkCCOn);
+  document.getElementById('bkCCExtras').style.display=bkCCOn?'block':'none';
+  document.getElementById('bkCCLimit').value=b.ccLimit||'';
+  document.getElementById('bkCCInvoice').value=b.ccInvoice||'';
+  document.getElementById('bkCCClose').value=b.ccCloseDay||'';
+  document.getElementById('bkCCDue').value=b.ccDueDay||'';
   document.getElementById('btnDelBank').style.display='block';
   renderBankEmojiGrid();
   openModal('bankModal');
@@ -904,8 +924,7 @@ function openEditBank(id){
 
 function deleteBank(){
   if(!editingBankId) return;
-  S.subs = S.subs.filter(s=>s.bankId!==editingBankId);
-  S.transactions = S.transactions.filter(t=>t.bankId!==editingBankId);
+  S.transactions = S.transactions.filter(t=>t.bankId!==editingBankId&&t.bankToId!==editingBankId&&t.ccBankId!==editingBankId);
   S.banks = S.banks.filter(b=>b.id!==editingBankId);
   save(); closeModal('bankModal');
   switchPage('home', document.querySelector('.ni'));
@@ -913,117 +932,45 @@ function deleteBank(){
 }
 
 // ════════════════════════════════════════════════════════
-// SUB-ACCOUNT FORM
-// ════════════════════════════════════════════════════════
-function setSubType(t,el){
-  subType=t;
-  document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  document.getElementById('subCCExtras').style.display = t==='cc'?'block':'none';
-  document.getElementById('subInvExtras').style.display = t==='investment'?'block':'none';
-  const balLbl = document.getElementById('subBalLabel');
-  if(t==='cc') balLbl.textContent='Fatura Atual (R$)';
-  else if(t==='investment') balLbl.textContent='Valor Investido (R$)';
-  else balLbl.textContent='Saldo Atual (R$)';
-}
-
-function toggleSubLimit(){
-  subLimitOn=!subLimitOn;
-  document.getElementById('subLimitTog').classList.toggle('on',subLimitOn);
-  document.getElementById('subLimitAlertWrap').style.display=subLimitOn?'block':'none';
-}
-
-function resetSubForm(){
-  subType='conta'; subLimitOn=false; editingSubId=null;
-  document.getElementById('subModalTitle').textContent='Nova Sub-conta';
-  document.getElementById('subName').value='';
-  document.getElementById('subBalance').value='';
-  document.getElementById('subLimit').value='';
-  document.getElementById('subLimitAlert').value='';
-  document.getElementById('btnDelSub').style.display='none';
-  document.getElementById('subLimitTog').classList.remove('on');
-  document.getElementById('subLimitAlertWrap').style.display='none';
-  setSubType('conta', document.querySelector('[data-st="conta"]'));
-}
-
-function saveSub(){
-  const name=document.getElementById('subName').value.trim();
-  const balance=parseFloat(document.getElementById('subBalance').value)||0;
-  if(!name){showToast('⚠️ Informe o nome');return;}
-  const bkId = editingSubId ? (S.subs.find(s=>s.id===editingSubId)||{}).bankId : currentBankId;
-  if(!bkId){showToast('⚠️ Selecione um banco primeiro');return;}
-  const obj={
-    id:editingSubId||uid(), bankId:bkId, type:subType, name, balance,
-    limit:subType==='cc'?(parseFloat(document.getElementById('subLimit').value)||0):0,
-    limitEnabled:subType==='cc'?subLimitOn:false,
-    limitAlert:subType==='cc'?(parseFloat(document.getElementById('subLimitAlert').value)||0):0,
-    invType:subType==='investment'?document.getElementById('subInvType').value:''
-  };
-  if(editingSubId){
-    const i=S.subs.findIndex(s=>s.id===editingSubId);
-    if(i>-1) S.subs[i]=obj;
-    showToast('✅ Sub-conta atualizada');
-  } else {
-    S.subs.push(obj);
-    showToast('✅ Sub-conta adicionada');
-  }
-  save(); closeModal('subModal'); renderBankDetail(); renderHome();
-}
-
-function openEditSub(id){
-  editingSubId=id;
-  const s=S.subs.find(x=>x.id===id);
-  if(!s) return;
-  subType=s.type; subLimitOn=s.limitEnabled||false;
-  document.getElementById('subModalTitle').textContent='Editar Sub-conta';
-  document.getElementById('subName').value=s.name;
-  document.getElementById('subBalance').value=s.balance;
-  document.getElementById('subLimit').value=s.limit||'';
-  document.getElementById('subLimitAlert').value=s.limitAlert||'';
-  document.getElementById('btnDelSub').style.display='block';
-  document.getElementById('subLimitTog').classList.toggle('on',subLimitOn);
-  document.getElementById('subLimitAlertWrap').style.display=subLimitOn?'block':'none';
-  setSubType(s.type, document.querySelector(`[data-st="${s.type}"]`));
-  openModal('subModal');
-}
-
-function deleteSub(){
-  if(!editingSubId) return;
-  S.subs=S.subs.filter(s=>s.id!==editingSubId);
-  S.transactions=S.transactions.map(t=>t.subId===editingSubId?{...t,subId:''}:t);
-  save(); closeModal('subModal'); renderBankDetail(); renderHome();
-  showToast('🗑️ Sub-conta removida');
-}
-
-// ════════════════════════════════════════════════════════
 // TX FORM
 // ════════════════════════════════════════════════════════
 function setTxType(t){
   txType=t;
-  // update buttons
-  ['E','I','T','V','W'].forEach(k=>{
-    const map={E:'expense',I:'income',T:'transfer',V:'investment',W:'withdrawal'};
+  const map={E:'expense',I:'income',T:'transfer',V:'investment',W:'withdrawal',P:'cc_payment'};
+  ['E','I','T','V','W','P'].forEach(k=>{
     const el=document.getElementById('tb'+k);
-    const tt=map[k];
-    el.className='tbtn'+(txType===tt?' sel-'+tt:'');
+    el.className='tbtn'+(txType===map[k]?' sel-'+map[k]:'');
   });
-  // show/hide fields
   document.getElementById('txToWrap').style.display = t==='transfer'?'block':'none';
-  const showRecur = t==='income' || t==='expense';
+  document.getElementById('txCCPayWrap').style.display = t==='cc_payment'?'block':'none';
+  const showRecur = t==='income'||t==='expense';
   document.getElementById('txRecurWrap').style.display = showRecur?'block':'none';
   if(t==='income') document.getElementById('recurLabel').textContent='🔁 Entrada recorrente (mensal)';
-  else if(t==='expense') document.getElementById('recurLabel').textContent='🔁 Gasto fixo mensal (repetir)';
+  else document.getElementById('recurLabel').textContent='🔁 Gasto fixo mensal (repetir)';
   if(!showRecur){txRecur=false;document.getElementById('recurTog').classList.remove('on');}
-  // parcel: only for expense, show after bank/sub selection
+  // Category visibility
+  document.getElementById('txCatWrap').style.display = (t==='cc_payment'||t==='transfer')?'none':'block';
+  // Bank label
+  document.getElementById('txBankLabel').textContent = t==='cc_payment'?'Banco de origem (débito)':'Banco';
+  // CC pay: populate cc banks
+  if(t==='cc_payment') populateCCBankSelect();
+  updateParcelWrap();
+}
+
+function onTxBankChange(){
+  const bkId = document.getElementById('txBank').value;
+  const bk = S.banks.find(b=>b.id===bkId);
+  const isCC = bk && bk.hasCC;
+  document.getElementById('txCCInfo').style.display = (txType==='expense'&&isCC)?'block':'none';
   updateParcelWrap();
 }
 
 function updateParcelWrap(){
-  const subId = document.getElementById('txSub').value;
-  const sub = S.subs.find(s=>s.id===subId);
-  const isCC = sub && sub.type==='cc';
-  document.getElementById('txParcelWrap').style.display = (txType==='expense' && isCC)?'block':'none';
-  if(!(txType==='expense' && isCC)){
+  const bkId = document.getElementById('txBank').value;
+  const bk = S.banks.find(b=>b.id===bkId);
+  const isCC = bk && bk.hasCC;
+  document.getElementById('txParcelWrap').style.display = (txType==='expense'&&isCC)?'block':'none';
+  if(!(txType==='expense'&&isCC)){
     txParcel=false;
     document.getElementById('parcelTog').classList.remove('on');
     document.getElementById('parcelQtdWrap').style.display='none';
@@ -1052,9 +999,12 @@ function resetTxForm(){
   document.getElementById('parcelTog').classList.remove('on');
   document.getElementById('parcelQtdWrap').style.display='none';
   document.getElementById('txToWrap').style.display='none';
-  document.getElementById('txRecurWrap').style.display='block'; // expense shows recur by default
-  document.getElementById('recurLabel').textContent='🔁 Gasto fixo mensal (repetir)';
+  document.getElementById('txCCPayWrap').style.display='none';
+  document.getElementById('txCCInfo').style.display='none';
+  document.getElementById('txRecurWrap').style.display='block';
   document.getElementById('txParcelWrap').style.display='none';
+  document.getElementById('txCatWrap').style.display='block';
+  document.getElementById('txBankLabel').textContent='Banco';
   setTxType('expense');
 }
 
@@ -1065,24 +1015,28 @@ function populateBankSelects(){
     const el=document.getElementById(id); const cur=el.value;
     el.innerHTML=opts; el.value=cur;
   });
-  populateSubSelect(); populateSubSelectTo();
 }
 
-function populateSubSelect(){
-  const bkId=document.getElementById('txBank').value;
-  const subs=S.subs.filter(s=>s.bankId===bkId);
-  const opts='<option value="">— Nenhuma —</option>'+subs.map(s=>`<option value="${s.id}">${subLabel(s)}: ${s.name}</option>`).join('');
-  const el=document.getElementById('txSub'); const cur=el.value;
-  el.innerHTML=opts; el.value=cur;
-  updateParcelWrap();
+function populateCCBankSelect(){
+  const ccBanks = S.banks.filter(b=>b.hasCC);
+  const el = document.getElementById('txCCBank');
+  el.innerHTML = '<option value="">— Selecione —</option>' +
+    ccBanks.map(b=>`<option value="${b.id}">${b.icon} ${b.name}</option>`).join('');
+  el.onchange = updateCCPayInfo;
+  updateCCPayInfo();
 }
 
-function populateSubSelectTo(){
-  const bkId=document.getElementById('txBankTo').value;
-  const subs=S.subs.filter(s=>s.bankId===bkId);
-  const opts='<option value="">— Nenhuma —</option>'+subs.map(s=>`<option value="${s.id}">${subLabel(s)}: ${s.name}</option>`).join('');
-  const el=document.getElementById('txSubTo'); const cur=el.value;
-  el.innerHTML=opts; el.value=cur;
+function updateCCPayInfo(){
+  const bkId = document.getElementById('txCCBank').value;
+  const bk = S.banks.find(b=>b.id===bkId);
+  const el = document.getElementById('txCCPayInfo');
+  if(bk){
+    const inv = computeCCInvoice(bkId);
+    el.style.display='block';
+    el.textContent=`Fatura atual: ${fmt(inv)} · Vence dia ${bk.ccDueDay||5}`;
+  } else {
+    el.style.display='none';
+  }
 }
 
 function populateNameSugg(){
@@ -1095,19 +1049,33 @@ function saveTx(){
   const name=document.getElementById('txName').value.trim();
   const category=document.getElementById('txCat').value;
   const bankId=document.getElementById('txBank').value;
-  const subId=document.getElementById('txSub').value;
   const date=document.getElementById('txDate').value;
+
   if(!amount||amount<=0||!name){showToast('⚠️ Preencha nome e valor');return;}
-  if(!bankId){showToast('⚠️ Selecione um banco');return;}
+  if(!bankId&&txType!=='cc_payment'){showToast('⚠️ Selecione um banco');return;}
 
   const d = new Date(date+'T12:00:00');
 
+  // CC PAYMENT special handling
+  if(txType==='cc_payment'){
+    const ccBankId = document.getElementById('txCCBank').value;
+    if(!ccBankId){showToast('⚠️ Selecione o cartão a pagar');return;}
+    const k=mkey(d.getFullYear(),d.getMonth()+1);
+    S.transactions.push({
+      id:uid(), type:'cc_payment', name, amount, category:'💳 Pagamento Fatura',
+      bankId, bankToId:'', ccBankId, date, month:k, recurrent:false
+    });
+    showToast('✅ Pagamento registrado');
+    save(); closeModal('txModal'); renderHome();
+    if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+    return;
+  }
+
   if(editingTxId){
-    // simple update
     const k=mkey(d.getFullYear(),d.getMonth()+1);
     const idx=S.transactions.findIndex(t=>t.id===editingTxId);
     if(idx>-1){
-      S.transactions[idx]={...S.transactions[idx],type:txType,name,amount,category,bankId,subId,date,month:k,recurrent:txRecur};
+      S.transactions[idx]={...S.transactions[idx],type:txType,name,amount,category,bankId,date,month:k,recurrent:txRecur};
     }
     showToast('✅ Atualizado');
     save(); closeModal('txModal'); renderHome();
@@ -1115,41 +1083,44 @@ function saveTx(){
   }
 
   if(txParcel){
-    // INSTALLMENTS
     const qtd=Math.max(2,parseInt(document.getElementById('parcelQtd').value)||2);
     const parcelAmt=Math.round(amount/qtd*100)/100;
     const group=uid();
+    const bk = S.banks.find(b=>b.id===bankId);
     for(let i=0;i<qtd;i++){
       let m=d.getMonth()+i; let y=d.getFullYear();
+      // If bank has CC, shift by close day logic: if day >= closeDay, first parcel goes to next month
+      if(bk&&bk.hasCC&&i===0&&d.getDate()>=bk.ccCloseDay){
+        m = d.getMonth()+1; y = d.getFullYear();
+        if(m>11){m=0;y++;}
+      }
       while(m>11){m-=12;y++;}
       const fd=new Date(y,m,d.getDate());
       const fk=mkey(fd.getFullYear(),fd.getMonth()+1);
       S.transactions.push({
-        id:uid(),type:'expense',name,amount:parcelAmt,category,bankId,subId,
-        bankToId:'',subToId:'',date:fd.toISOString().slice(0,10),month:fk,
+        id:uid(),type:'expense',name,amount:parcelAmt,category,bankId,bankToId:'',
+        date:fd.toISOString().slice(0,10),month:fk,
         recurrent:false,parcelGroup:group,parcelIndex:i+1,parcelTotal:qtd
       });
     }
     showToast(`✅ ${qtd}x de ${fmt(parcelAmt)}`);
-  } else if(txRecur && (txType==='income' || txType==='expense')){
-    // RECURRING: generate 12 months
+  } else if(txRecur && (txType==='income'||txType==='expense')){
     for(let i=0;i<12;i++){
       let m=d.getMonth()+i; let y=d.getFullYear();
       while(m>11){m-=12;y++;}
       const fd=new Date(y,m,d.getDate());
       const fk=mkey(fd.getFullYear(),fd.getMonth()+1);
       S.transactions.push({
-        id:uid(),type:txType,name,amount,category,bankId,subId,
-        bankToId:'',subToId:'',date:fd.toISOString().slice(0,10),month:fk,recurrent:true
+        id:uid(),type:txType,name,amount,category,bankId,bankToId:'',
+        date:fd.toISOString().slice(0,10),month:fk,recurrent:true
       });
     }
     showToast('✅ 12 meses de recorrência criados');
   } else {
     const k=mkey(d.getFullYear(),d.getMonth()+1);
     const bankToId=txType==='transfer'?document.getElementById('txBankTo').value:'';
-    const subToId=txType==='transfer'?document.getElementById('txSubTo').value:'';
     S.transactions.push({
-      id:uid(),type:txType,name,amount,category,bankId,subId,bankToId,subToId,
+      id:uid(),type:txType,name,amount,category,bankId,bankToId,
       date,month:k,recurrent:false
     });
     showToast('✅ Lançamento salvo');
@@ -1167,17 +1138,16 @@ function openEditTx(id){
   document.getElementById('txAmt').value=t.amount;
   document.getElementById('txName').value=t.name;
   document.getElementById('txDate').value=t.date;
-  document.getElementById('txCat').value=t.category;
+  document.getElementById('txCat').value=t.category||'💰 Outros';
   document.getElementById('btnDelTx').style.display='block';
   document.getElementById('recurTog').classList.toggle('on',txRecur);
   populateBankSelects();
   document.getElementById('txBank').value=t.bankId||'';
-  populateSubSelect();
-  document.getElementById('txSub').value=t.subId||'';
   document.getElementById('txBankTo').value=t.bankToId||'';
-  populateSubSelectTo();
-  document.getElementById('txSubTo').value=t.subToId||'';
+  if(t.type==='cc_payment') populateCCBankSelect();
   setTxType(t.type);
+  if(t.ccBankId) document.getElementById('txCCBank').value=t.ccBankId;
+  onTxBankChange();
   openModal('txModal');
 }
 
@@ -1232,7 +1202,6 @@ function showRecurDeleteChoice(t){
 function deleteOneParcela(txId, group){
   document.getElementById('choiceModal')?.remove();
   S.transactions=S.transactions.filter(x=>x.id!==txId);
-  // re-index remaining parcelas
   const remaining=S.transactions.filter(x=>x.parcelGroup===group).sort((a,b)=>a.parcelIndex-b.parcelIndex);
   remaining.forEach((x,i)=>{ x.parcelIndex=i+1; x.parcelTotal=remaining.length; });
   save(); renderHome();
@@ -1263,7 +1232,7 @@ function deleteAllRecur(name){
 
 function openInvTx(){
   openModal('txModal');
-  setTxType('investment');
+  setTimeout(()=>setTxType('investment'),50);
 }
 
 // ════════════════════════════════════════════════════════
@@ -1275,6 +1244,8 @@ function renderHome(){
   const income=allTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
   const expense=allTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const invested=allTxs.filter(t=>t.type==='investment').reduce((s,t)=>s+t.amount,0);
+  // CC invoices: sum the computed invoice for all CC banks
+  const ccTotal = S.banks.filter(b=>b.hasCC).reduce((s,b)=>s+computeCCInvoice(b.id),0);
   const balance=income-expense;
 
   const hAmt=document.getElementById('hAmt');
@@ -1283,9 +1254,6 @@ function renderHome(){
   document.getElementById('hInc').textContent=fmt(income);
   document.getElementById('hExp').textContent=fmt(expense);
   document.getElementById('hInv').textContent=fmt(invested);
-
-  // CC total fatura
-  const ccTotal=S.subs.filter(s=>s.type==='cc').reduce((sum,s)=>sum+(s.balance||0),0);
   document.getElementById('hCC').textContent=fmt(ccTotal);
 
   const pct=income>0?Math.min(100,Math.round(expense/income*100)):0;
@@ -1300,28 +1268,27 @@ function renderHome(){
 }
 
 function renderCCPanel(){
-  const ccs=S.subs.filter(s=>s.type==='cc');
+  const ccs=S.banks.filter(b=>b.hasCC);
   const panel=document.getElementById('ccPanel');
   if(!ccs.length){panel.style.display='none';return;}
   panel.style.display='block';
-  const totalFatura=ccs.reduce((s,c)=>s+(c.balance||0),0);
-  const totalLimite=ccs.reduce((s,c)=>s+(c.limit||0),0);
+  const totalFatura=ccs.reduce((s,c)=>s+computeCCInvoice(c.id),0);
+  const totalLimite=ccs.reduce((s,c)=>s+(c.ccLimit||0),0);
   document.getElementById('ccTotalTag').textContent='Fatura: '+fmt(totalFatura)+(totalLimite>0?' / Limite: '+fmt(totalLimite):'');
   document.getElementById('ccRows').innerHTML=ccs.map(cc=>{
-    const bk=S.banks.find(b=>b.id===cc.bankId);
-    const pct=cc.limit>0?Math.min(100,Math.round(cc.balance/cc.limit*100)):0;
-    const warn=cc.limitEnabled&&cc.limitAlert>0&&cc.balance>=cc.limitAlert;
+    const inv=computeCCInvoice(cc.id);
+    const pct=cc.ccLimit>0?Math.min(100,Math.round(inv/cc.ccLimit*100)):0;
     const barColor=pct>80?'var(--red)':pct>60?'var(--orange)':'var(--blue)';
-    return `<div class="cc-row">
-      <div class="cc-ri">${bk?bk.icon:'💳'}</div>
+    return `<div class="cc-row" onclick="openBankDetail('${cc.id}')">
+      <div class="cc-ri">${cc.icon}</div>
       <div class="cc-rinfo">
-        <div class="cc-rname">${cc.name}${warn?' ⚠️':''}</div>
-        <div class="cc-rbank">${bk?bk.name:'—'}</div>
-        ${cc.limit>0?`<div class="cc-rbar-wrap"><div class="cc-rbar-track"><div class="cc-rbar-fill" style="width:${pct}%;background:${barColor}"></div></div><span style="font-size:9px;color:var(--t2)">${pct}%</span></div>`:''}
+        <div class="cc-rname">${cc.name}</div>
+        <div class="cc-rbank cc-dates">Fecha dia ${cc.ccCloseDay} · Vence dia ${cc.ccDueDay}</div>
+        ${cc.ccLimit>0?`<div class="cc-rbar-wrap"><div class="cc-rbar-track"><div class="cc-rbar-fill" style="width:${pct}%;background:${barColor}"></div></div><span style="font-size:9px;color:var(--t2)">${pct}%</span></div>`:''}
       </div>
       <div style="text-align:right">
-        <div class="cc-ramt">${fmt(cc.balance)}</div>
-        ${cc.limit>0?`<div style="font-size:9px;color:var(--t2)">/ ${fmt(cc.limit)}</div>`:''}
+        <div class="cc-ramt">${fmt(inv)}</div>
+        ${cc.ccLimit>0?`<div style="font-size:9px;color:var(--t2)">/ ${fmt(cc.ccLimit)}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1330,18 +1297,23 @@ function renderCCPanel(){
 function renderBanksScroll(){
   const scroll=document.getElementById('banksScroll');
   const cards=S.banks.map(bk=>{
-    const total=bankTotal(bk.id);
-    const subs=S.subs.filter(s=>s.bankId===bk.id);
+    const net=bankNetWorth(bk);
+    const color=bk.color||'var(--accent)';
+    const inv=bk.hasCC?computeCCInvoice(bk.id):0;
     return `<div class="bank-card" onclick="openBankDetail('${bk.id}')">
+      <div class="bc-accent-bar" style="background:${color}"></div>
       <div class="bc-icon">${bk.icon}</div>
       <div class="bc-name">${bk.name}</div>
-      <div class="bc-total" style="color:${bk.color||'var(--accent)'}">${fmt(total)}</div>
-      <div class="bc-subs">${subs.length} sub-conta${subs.length!==1?'s':''}</div>
+      <div class="bc-total" style="color:${color}">${fmt(net)}</div>
+      ${bk.hasCC?`<div class="bc-subs" style="color:var(--orange)">Fatura: ${fmt(inv)}</div>`:'<div class="bc-subs">Sem cartão</div>'}
     </div>`;
   }).join('');
   scroll.innerHTML=cards+`<div class="add-bank" onclick="openModal('bankModal')"><span>＋</span><span>Novo banco</span></div>`;
 }
 
+// ════════════════════════════════════════════════════════
+// RENDER: TX LIST
+// ════════════════════════════════════════════════════════
 function renderTxList(txs, containerId){
   const search=(document.getElementById('searchInput')||{}).value||'';
   let filtered=txs;
@@ -1365,21 +1337,23 @@ function renderTxList(txs, containerId){
       lastDate=t.date;
     }
     const bk=S.banks.find(b=>b.id===t.bankId);
-    const sub=S.subs.find(s=>s.id===t.subId);
     const bkTo=t.bankToId?S.banks.find(b=>b.id===t.bankToId):null;
+    const bkCC=t.ccBankId?S.banks.find(b=>b.id===t.ccBankId):null;
     const catEmoji=t.category?t.category.split(' ')[0]:'';
-    const sign={expense:'−',income:'+',transfer:'↔',investment:'↗',withdrawal:'↙'}[t.type]||'';
-    const cls={expense:'tv-neg',income:'tv-pos',transfer:'tv-neu',investment:'tv-inv',withdrawal:'tv-neu'}[t.type]||'';
+    const sign={expense:'−',income:'+',transfer:'↔',investment:'↗',withdrawal:'↙',cc_payment:'💳'}[t.type]||'';
+    const cls={expense:'tv-neg',income:'tv-pos',transfer:'tv-neu',investment:'tv-inv',withdrawal:'tv-neu',cc_payment:'tv-ora'}[t.type]||'';
     const parcelTag=t.parcelGroup?`<span class="tag-parcel">Parcela ${t.parcelIndex}/${t.parcelTotal}</span>`:'';
     const recurTag=t.recurrent?'<span class="tag-recur">🔁</span>':'';
+    let bankInfo = bk?`${bk.icon} ${bk.name}`:'';
+    if(bkTo) bankInfo += ` → ${bkTo.icon} ${bkTo.name}`;
+    if(bkCC) bankInfo += ` · Cartão: ${bkCC.icon} ${bkCC.name}`;
     html+=`<div class="tx-item" onclick="openEditTx('${t.id}')">
       <div class="tx-ico ico-${t.type}">${catEmoji||TYPE_ICONS[t.type]}</div>
       <div class="tx-inf">
         <div class="tx-nm">${t.name}</div>
         <div class="tx-meta">
-          <span class="tag">${t.category||''}</span>
-          ${bk?`<span>${bk.icon} ${bk.name}${sub?' · '+sub.name:''}</span>`:''}
-          ${bkTo?`<span>→ ${bkTo.icon} ${bkTo.name}</span>`:''}
+          ${t.category&&t.type!=='cc_payment'?`<span class="tag">${t.category}</span>`:''}
+          ${bankInfo?`<span>${bankInfo}</span>`:''}
           ${parcelTag}${recurTag}
         </div>
       </div>
@@ -1396,24 +1370,82 @@ function renderBankDetail(){
   const bk=S.banks.find(b=>b.id===currentBankId);
   if(!bk) return;
   document.getElementById('bkdTitle').textContent=bk.icon+' '+bk.name;
-  const total=bankTotal(bk.id);
-  document.getElementById('bkdTotal').textContent='Patrimônio total: '+fmt(total);
+  document.getElementById('bkdSubtitle').textContent='Patrimônio: '+fmt(bankNetWorth(bk));
 
-  const subs=S.subs.filter(s=>s.bankId===bk.id);
-  const subHtml=subs.map(s=>{
-    const color={conta:'var(--blue)',cc:'var(--orange)',investment:'var(--accent)',savings:'var(--green)'}[s.type]||'var(--text)';
-    return `<div class="sub-card" onclick="openEditSub('${s.id}')">
-      <div class="sc-type">${subLabel(s)}</div>
-      <div class="sc-val" style="color:${color}">${fmt(s.balance)}</div>
-      <div class="sc-name">${s.name}</div>
-      ${s.type==='cc'&&s.limit>0?`<div style="font-size:9px;color:var(--t2);margin-top:3px">Limite: ${fmt(s.limit)}</div>`:''}
+  let html='';
+
+  // Saldo
+  html+=`<div class="bksec">
+    <div class="bksec-h">
+      <span class="bksec-title">💰 Saldo em Conta</span>
+      <span class="bksec-val" style="color:var(--blue)">${fmt(bk.balance||0)}</span>
+    </div>
+    <button class="btn-sm" style="width:100%;background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:var(--rsm);padding:8px;font-size:12px;cursor:pointer" onclick="openTxForBank()">+ Lançar</button>
+  </div>`;
+
+  // Investimento
+  html+=`<div class="bksec">
+    <div class="bksec-h">
+      <span class="bksec-title">📈 Investimentos</span>
+      <span class="bksec-val" style="color:var(--accent)">${fmt(bk.investment||0)}</span>
+    </div>
+    <button class="btn-sm" style="width:100%;background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:var(--rsm);padding:8px;font-size:12px;cursor:pointer" onclick="openEditBank('${bk.id}')">Atualizar valor</button>
+  </div>`;
+
+  // CC
+  if(bk.hasCC){
+    const inv=computeCCInvoice(bk.id);
+    const pct=bk.ccLimit>0?Math.min(100,Math.round(inv/bk.ccLimit*100)):0;
+    const barColor=pct>80?'var(--red)':pct>60?'var(--orange)':'var(--blue)';
+    // Compute next due
+    const now=new Date();
+    let closeMonth=now.getMonth(); let closeYear=now.getFullYear();
+    if(now.getDate()>=bk.ccCloseDay){closeMonth++;if(closeMonth>11){closeMonth=0;closeYear++;}}
+    const closeDate=`${bk.ccCloseDay}/${String(closeMonth+1).padStart(2,'0')}/${closeYear}`;
+    let dueMonth=closeMonth+1; let dueYear=closeYear;
+    if(dueMonth>11){dueMonth=0;dueYear++;}
+    const dueDate=`${bk.ccDueDay}/${String(dueMonth+1).padStart(2,'0')}/${dueYear}`;
+
+    html+=`<div class="bksec">
+      <div class="bksec-h">
+        <span class="bksec-title">💳 Cartão de Crédito</span>
+        <span class="bksec-val" style="color:var(--orange)">${fmt(inv)}</span>
+      </div>
+      <div class="cc-invoice-block">
+        <div class="cc-inv-row"><span class="cc-inv-lbl">Fatura acumulada</span><span class="cc-inv-val" style="color:var(--orange)">${fmt(inv)}</span></div>
+        ${bk.ccLimit>0?`<div class="cc-inv-row"><span class="cc-inv-lbl">Limite</span><span class="cc-inv-val">${fmt(bk.ccLimit)}</span></div>`:''}
+        ${bk.ccLimit>0?`<div class="cc-inv-row"><span class="cc-inv-lbl">Disponível</span><span class="cc-inv-val" style="color:var(--green)">${fmt(Math.max(0,bk.ccLimit-inv))}</span></div>`:''}
+        <div class="cc-inv-row"><span class="cc-inv-lbl">Fecha em</span><span class="cc-inv-val">${closeDate}</span></div>
+        <div class="cc-inv-row"><span class="cc-inv-lbl">Vence em</span><span class="cc-inv-val">${dueDate}</span></div>
+        ${bk.ccLimit>0?`<div style="margin-top:8px"><div style="background:var(--s3);border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${pct}%;background:${barColor};transition:width .5s"></div></div><div style="font-size:9px;color:var(--t2);margin-top:3px;text-align:right">${pct}% do limite</div></div>`:''}
+      </div>
+      <button class="btn-sm" style="width:100%;background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:var(--rsm);padding:8px;font-size:12px;cursor:pointer" onclick="openPayCC('${bk.id}')">💳 Pagar Fatura</button>
     </div>`;
-  }).join('');
-  document.getElementById('subCards').innerHTML=subHtml+`<div class="add-sub" onclick="openModal('subModal')"><span>＋</span><span>Nova sub-conta</span></div>`;
+  }
 
-  // transactions for this bank
-  const bkTxs=S.transactions.filter(t=>t.bankId===currentBankId&&t.month===curKey());
+  document.getElementById('bkdSections').innerHTML=html;
+
+  // Transactions for this bank
+  const bkTxs=S.transactions.filter(t=>(t.bankId===currentBankId||t.ccBankId===currentBankId)&&t.month===curKey());
   renderTxList(bkTxs, 'bkdTxList');
+}
+
+function openPayCC(ccBankId){
+  resetTxForm();
+  populateBankSelects();
+  populateNameSugg();
+  if(S.banks.length){
+    document.getElementById('txBank').value=S.banks[0].id;
+  }
+  setTxType('cc_payment');
+  setTimeout(()=>{
+    document.getElementById('txCCBank').value=ccBankId;
+    updateCCPayInfo();
+    document.getElementById('txName').value='Pagamento fatura';
+    const bk=S.banks.find(b=>b.id===ccBankId);
+    if(bk) document.getElementById('txAmt').value=computeCCInvoice(ccBankId).toFixed(2);
+  },50);
+  openModal('txModal');
 }
 
 // ════════════════════════════════════════════════════════
@@ -1426,22 +1458,23 @@ function renderBanksPage(){
     return;
   }
   el.innerHTML=S.banks.map(bk=>{
-    const subs=S.subs.filter(s=>s.bankId===bk.id);
-    const total=bankTotal(bk.id);
-    const subTagsHtml=subs.map(s=>{
-      const color={conta:'var(--blue)',cc:'var(--orange)',investment:'var(--accent)',savings:'var(--green)'}[s.type]||'var(--t2)';
-      return `<div class="bksub-tag"><span>${subLabel(s)}</span><span class="stval" style="color:${color}">${fmt(s.balance)}</span></div>`;
-    }).join('');
+    const net=bankNetWorth(bk);
+    const color=bk.color||'var(--accent)';
+    const inv=bk.hasCC?computeCCInvoice(bk.id):0;
+    let tagsHtml=`<div class="bk-tag"><span>💰 Conta</span><span class="stval" style="color:var(--blue)">${fmt(bk.balance||0)}</span></div>`;
+    if(bk.investment) tagsHtml+=`<div class="bk-tag"><span>📈 Invest.</span><span class="stval" style="color:var(--accent)">${fmt(bk.investment)}</span></div>`;
+    if(bk.hasCC) tagsHtml+=`<div class="bk-tag"><span>💳 Fatura</span><span class="stval" style="color:var(--orange)">${fmt(inv)}</span></div>`;
     return `<div class="bkcard" onclick="openBankDetail('${bk.id}')">
-      <div class="bkh">
+      <div class="bk-accent" style="background:${color}"></div>
+      <div class="bkh" style="padding-left:8px">
         <div class="bkico">${bk.icon}</div>
         <div class="bkinf">
           <div class="bkname">${bk.name}</div>
-          <div style="font-size:10px;color:var(--t2)">${subs.length} sub-conta${subs.length!==1?'s':''}</div>
+          <div style="font-size:10px;color:var(--t2)">${bk.hasCC?'Com cartão de crédito':'Sem cartão'}</div>
         </div>
-        <div class="bktotal" style="color:${bk.color||'var(--accent)'}">${fmt(total)}</div>
+        <div class="bktotal" style="color:${color}">${fmt(net)}</div>
       </div>
-      <div class="bksubs">${subTagsHtml||'<span style="font-size:11px;color:var(--t2)">Nenhuma sub-conta</span>'}</div>
+      <div class="bk-details" style="padding-left:8px">${tagsHtml}</div>
     </div>`;
   }).join('');
 }
@@ -1453,14 +1486,19 @@ function renderInvestmentsPage(){
   const txs=S.transactions.filter(t=>t.type==='investment'||t.type==='withdrawal');
   const map={};
   txs.forEach(t=>{
-    if(!map[t.name]) map[t.name]={name:t.name,invested:0,withdrawn:0,bankId:t.bankId,subId:t.subId,lastDate:t.date};
+    if(!map[t.name]) map[t.name]={name:t.name,invested:0,withdrawn:0,bankId:t.bankId,lastDate:t.date};
     if(t.type==='investment') map[t.name].invested+=t.amount;
     else map[t.name].withdrawn+=t.amount;
     if(t.date>map[t.name].lastDate) map[t.name].lastDate=t.date;
   });
+  // Also include banks with investment field
+  S.banks.filter(b=>b.investment>0).forEach(b=>{
+    const key='_bank_'+b.id;
+    if(!map[key]) map[key]={name:b.name+' (patrimônio)',invested:b.investment,withdrawn:0,bankId:b.id,lastDate:'—'};
+  });
   const items=Object.values(map);
-  const total=items.reduce((s,i)=>s+(i.invested-i.withdrawn),0);
-  document.getElementById('invTotal').textContent=fmt(total);
+  const totalTx=items.reduce((s,i)=>s+(i.invested-i.withdrawn),0);
+  document.getElementById('invTotal').textContent=fmt(totalTx);
   const el=document.getElementById('invList');
   if(!items.length){
     el.innerHTML='<div class="empty"><div class="ei">📈</div><p>Nenhum investimento registrado</p></div>';
@@ -1468,21 +1506,21 @@ function renderInvestmentsPage(){
   }
   el.innerHTML=items.map(i=>{
     const bk=S.banks.find(b=>b.id===i.bankId);
-    const sub=S.subs.find(s=>s.id===i.subId);
     const net=i.invested-i.withdrawn;
+    const lastD=i.lastDate!=='—'?new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
     return `<div class="inv-card">
       <div class="inv-h">
         <div class="inv-ico">📈</div>
         <div class="inv-inf">
           <div class="inv-name">${i.name}</div>
-          <div class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}${sub?' · '+sub.name:''}</div>
+          <div class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}</div>
         </div>
         <div class="inv-amt">${fmt(net)}</div>
       </div>
       <div class="inv-meta">
         <div class="inv-mi"><div class="lbl">Aportado</div><div class="val" style="color:var(--green)">${fmt(i.invested)}</div></div>
         <div class="inv-mi"><div class="lbl">Retirado</div><div class="val" style="color:var(--purple)">${fmt(i.withdrawn)}</div></div>
-        <div class="inv-mi"><div class="lbl">Última mov.</div><div class="val">${new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</div></div>
+        <div class="inv-mi"><div class="lbl">Última mov.</div><div class="val">${lastD}</div></div>
       </div>
     </div>`;
   }).join('');
@@ -1547,12 +1585,11 @@ function renderAnalytics(){
   const bkEl=document.getElementById('bankBreakdown');
   if(!S.banks.length){bkEl.innerHTML='<div style="color:var(--t2);font-size:12px">Nenhum banco</div>';}
   else{
-    const totalBal=S.banks.reduce((s,bk)=>s+Math.abs(bankTotal(bk.id)),0)||1;
-    const COLS=['#4fc3f7','#7fff6e','#ff7b54','#ab47bc','#69f0ae','#ffd54f','#80cbc4'];
-    bkEl.innerHTML=S.banks.map((bk,i)=>{
-      const t=bankTotal(bk.id);
+    const totalBal=S.banks.reduce((s,bk)=>s+Math.abs(bankNetWorth(bk)),0)||1;
+    bkEl.innerHTML=S.banks.map(bk=>{
+      const t=bankNetWorth(bk);
       const pct=Math.round(Math.abs(t)/totalBal*100);
-      const col=COLS[i%COLS.length];
+      const col=bk.color||'#7fff6e';
       return `<div class="crow"><div style="font-size:16px">${bk.icon}</div><div class="cname">${bk.name}</div><div class="ctrack"><div class="cfill" style="width:${pct}%;background:${col}"></div></div><div class="cpct">${pct}%</div><div class="cval">${fmt(t)}</div></div>`;
     }).join('');
   }
@@ -1571,7 +1608,7 @@ function showToast(msg){
 // PWA
 // ════════════════════════════════════════════════════════
 (function(){
-  const iconSvg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#0b0d10"/><circle cx="256" cy="256" r="220" fill="#0e1a0e" stroke="#2a4a2a" stroke-width="14"/><path d="M56 256 Q256 60 456 256" stroke="#7fff6e" stroke-width="22" stroke-linecap="round" fill="none"/><path d="M56 256 Q256 452 456 256" stroke="#7fff6e" stroke-width="22" stroke-linecap="round" fill="none"/><ellipse cx="256" cy="256" rx="120" ry="120" fill="#e8f0e8"/><circle cx="256" cy="256" r="85" fill="#1a3a1a"/><circle cx="256" cy="256" r="85" fill="none" stroke="#7fff6e" stroke-width="18" opacity="0.7"/><circle cx="256" cy="256" r="50" fill="#0b0d10"/><circle cx="292" cy="220" r="17" fill="white" opacity="0.9"/></svg>`;
+  const iconSvg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#0b0d10"/><text x="256" y="340" text-anchor="middle" font-size="280" font-weight="700" font-family="'DM Sans',sans-serif" fill="#7fff6e">R$</text></svg>`;
   const svgBlob=new Blob([iconSvg],{type:'image/svg+xml'});
   const svgUrl=URL.createObjectURL(svgBlob);
   const manifest={name:'Zoiudo Contábil',short_name:'Zoiudo',description:'Gestão financeira pessoal',start_url:'./',display:'standalone',background_color:'#0b0d10',theme_color:'#0b0d10',orientation:'portrait',icons:[{src:svgUrl,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
@@ -1580,7 +1617,7 @@ function showToast(msg){
   const al=document.createElement('link');al.rel='apple-touch-icon';al.href=svgUrl;document.head.appendChild(al);
 })();
 if('serviceWorker' in navigator){
-  const sw=`const C='zoiudo-v3';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>{const net=fetch(e.request).then(r=>{if(r&&r.status===200)caches.open(C).then(c=>c.put(e.request,r.clone()));return r;}).catch(()=>cached);return cached||net;}));});`;
+  const sw=`const C='zoiudo-v4';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>{const net=fetch(e.request).then(r=>{if(r&&r.status===200)caches.open(C).then(c=>c.put(e.request,r.clone()));return r;}).catch(()=>cached);return cached||net;}));});`;
   const swBlob=new Blob([sw],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(swBlob),{scope:'./'}).catch(()=>{});
 }
