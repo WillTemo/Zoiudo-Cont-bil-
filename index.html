@@ -12,10 +12,6 @@
 <link rel="manifest" id="pwaManifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- Firebase SDKs (compat v9) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg:#0b0d10;--surface:#13161d;--s2:#1a1e28;--s3:#20263a;
@@ -436,9 +432,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <button onclick="changeMonth(1)">›</button>
   </div>
 </div>
-
-<!-- USER / SYNC BAR -->
-<div id="userBar" style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--surface);border-bottom:1px solid var(--border);min-height:34px"></div>
 
 <!-- PAGE: HOME -->
 <div id="page-home" class="page on">
@@ -1126,214 +1119,48 @@ let selectedInvType = 'cdb';
 const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸',cc_payment:'💳'};
 
 // ════════════════════════════════════════════════════════
-// FIREBASE CONFIG  ← substitua pelos seus valores
+// STORAGE
 // ════════════════════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey:            "COLE_AQUI_apiKey",
-  authDomain:        "COLE_AQUI_authDomain",
-  projectId:         "COLE_AQUI_projectId",
-  storageBucket:     "COLE_AQUI_storageBucket",
-  messagingSenderId: "COLE_AQUI_messagingSenderId",
-  appId:             "COLE_AQUI_appId"
-};
-
-// ════════════════════════════════════════════════════════
-// FIREBASE STATE
-// ════════════════════════════════════════════════════════
-let _fbApp = null, _fbAuth = null, _fbDb = null;
-let _currentUser = null;
-let _syncTimeout = null;
-let _syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error' | 'offline'
-
-// ── Bootstrap Firebase (lazy, evita erros se config inválida) ──
-function _initFirebase(){
-  if(_fbApp) return true;
-  if(FIREBASE_CONFIG.apiKey === 'COLE_AQUI_apiKey'){
-    console.warn('Firebase não configurado — rodando só com localStorage');
-    return false;
-  }
-  try{
-    _fbApp  = firebase.initializeApp(FIREBASE_CONFIG);
-    _fbAuth = firebase.auth();
-    _fbDb   = firebase.firestore();
-    // Persistência offline nativa do Firestore
-    _fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
-    return true;
-  }catch(e){ console.error('Firebase init error',e); return false; }
-}
-
-// ── Caminho do documento do usuário ──
-function _userDoc(){
-  if(!_fbDb || !_currentUser) return null;
-  return _fbDb.collection('users').doc(_currentUser.uid).collection('data').doc('state');
-}
-
-// ── Status badge no header ──
-function _setSyncStatus(status, detail){
-  _syncStatus = status;
-  const el = document.getElementById('syncBadge');
-  if(!el) return;
-  const map = {
-    local:   { icon:'💾', text:'Local',      color:'var(--t3)' },
-    syncing: { icon:'🔄', text:'Salvando…',  color:'var(--orange)' },
-    synced:  { icon:'☁️', text:'Salvo',      color:'var(--green)' },
-    error:   { icon:'⚠️', text:'Erro sync',  color:'var(--red)' },
-    offline: { icon:'📵', text:'Offline',    color:'var(--t2)' },
-  };
-  const m = map[status] || map.local;
-  el.textContent = m.icon + ' ' + m.text;
-  el.style.color = m.color;
-  if(detail) console.warn('Sync:', detail);
-}
-
-// ════════════════════════════════════════════════════════
-// STORAGE  (localStorage sempre + Firebase quando logado)
-// ════════════════════════════════════════════════════════
-function save(){
-  // 1. Sempre salva local primeiro (garantia offline)
-  localStorage.setItem('zoiudo_v4', JSON.stringify(S));
-
-  // 2. Debounce: envia ao Firebase após 800ms de inatividade
-  if(!_currentUser || !_fbDb){ _setSyncStatus('local'); return; }
-  clearTimeout(_syncTimeout);
-  _setSyncStatus('syncing');
-  _syncTimeout = setTimeout(_pushToFirebase, 800);
-}
-
-async function _pushToFirebase(){
-  const doc = _userDoc();
-  if(!doc) return;
-  try{
-    await doc.set({
-      data: JSON.stringify(S),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      version: 4,
-      appVersion: 'zoiudo-v4'
-    });
-    _setSyncStatus('synced');
-  }catch(e){
-    _setSyncStatus('error', e.message);
-  }
-}
-
-async function _pullFromFirebase(){
-  const doc = _userDoc();
-  if(!doc) return false;
-  try{
-    const snap = await doc.get();
-    if(!snap.exists) return false;
-    const raw = snap.data().data;
-    if(!raw) return false;
-    const parsed = JSON.parse(raw);
-    _applyLoadedState(parsed);
-    localStorage.setItem('zoiudo_v4', raw); // espelha localmente
-    return true;
-  }catch(e){
-    console.error('Pull error', e);
-    return false;
-  }
-}
-
-// Aplica estado carregado (Firebase ou localStorage) com migrações
-function _applyLoadedState(parsed){
-  S = parsed;
-  S.banks.forEach(bk=>{
-    if(!bk.creditCards) bk.creditCards=[];
-    if(!bk.investments)  bk.investments=[];
-  });
-  if(!S.invHistory) S.invHistory=[];
-}
-
+function save(){ localStorage.setItem('zoiudo_v4', JSON.stringify(S)); }
 function load(){
-  // Carrega local imediatamente (app funciona offline sem delay)
   const d = localStorage.getItem('zoiudo_v4');
   if(d){
-    try{ _applyLoadedState(JSON.parse(d)); }catch(e){}
+    try{
+      S = JSON.parse(d);
+      // Ensure new arrays exist on legacy banks
+      S.banks.forEach(bk=>{
+        if(!bk.creditCards) bk.creditCards=[];
+        if(!bk.investments) bk.investments=[];
+      });
+      if(!S.invHistory) S.invHistory=[];
+    }catch(e){}
     return;
   }
-  // Migração v3
+  // migrate v3
   const old3 = localStorage.getItem('zoiudo_v3');
   if(old3){
     try{
       const o = JSON.parse(old3);
+      // banks from v3 (had subs)
       (o.banks||[]).forEach(bk=>{
-        const subs=(o.subs||[]).filter(s=>s.bankId===bk.id);
-        const contaSub=subs.find(s=>s.type==='conta')||subs.find(s=>s.type==='savings');
-        const invSub=subs.find(s=>s.type==='investment');
-        const ccSub=subs.find(s=>s.type==='cc');
+        const subs = (o.subs||[]).filter(s=>s.bankId===bk.id);
+        const contaSub = subs.find(s=>s.type==='conta')||subs.find(s=>s.type==='savings');
+        const invSub = subs.find(s=>s.type==='investment');
+        const ccSub = subs.find(s=>s.type==='cc');
         S.banks.push({
-          id:bk.id,name:bk.name,icon:bk.icon||'🏦',color:bk.color||'#7fff6e',
-          balance:contaSub?(contaSub.balance||0):0,
-          investment:invSub?(invSub.balance||0):0,
-          hasCC:!!ccSub,ccLimit:ccSub?(ccSub.limit||0):0,
-          ccInvoice:ccSub?(ccSub.balance||0):0,
-          ccCloseDay:15,ccDueDay:5
+          id:bk.id, name:bk.name, icon:bk.icon||'🏦', color:bk.color||'#7fff6e',
+          balance: contaSub ? (contaSub.balance||0) : 0,
+          investment: invSub ? (invSub.balance||0) : 0,
+          hasCC: !!ccSub,
+          ccLimit: ccSub?(ccSub.limit||0):0,
+          ccInvoice: ccSub?(ccSub.balance||0):0,
+          ccCloseDay: 15, ccDueDay: 5
         });
       });
-      (o.transactions||[]).forEach(t=>S.transactions.push({...t,bankToId:t.bankToId||''}));
+      (o.transactions||[]).forEach(t=>{
+        S.transactions.push({...t, bankToId:t.bankToId||''});
+      });
     }catch(e){}
-  }
-}
-
-// ════════════════════════════════════════════════════════
-// AUTH (Google Sign-In)
-// ════════════════════════════════════════════════════════
-function initAuth(){
-  if(!_initFirebase()) return;
-  _fbAuth.onAuthStateChanged(async user => {
-    _currentUser = user;
-    if(user){
-      _renderUserBar(user);
-      _setSyncStatus('syncing');
-      const pulled = await _pullFromFirebase();
-      if(pulled){
-        renderHome();
-        if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
-        _setSyncStatus('synced');
-      } else {
-        // Sem dados no Firebase ainda — empurra o localStorage atual
-        await _pushToFirebase();
-      }
-    } else {
-      _renderUserBar(null);
-      _setSyncStatus('local');
-    }
-  });
-
-  // Detecta online/offline
-  window.addEventListener('online',  ()=>{ _setSyncStatus('syncing'); _pushToFirebase(); });
-  window.addEventListener('offline', ()=>_setSyncStatus('offline'));
-}
-
-function signInGoogle(){
-  if(!_initFirebase()) return showToast('⚠️ Firebase não configurado');
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({prompt:'select_account'});
-  _fbAuth.signInWithPopup(provider).catch(e=>showToast('❌ ' + e.message));
-}
-
-function signOut(){
-  if(!_fbAuth) return;
-  if(!confirm('Sair da conta? Os dados continuam salvos localmente.')) return;
-  _fbAuth.signOut();
-}
-
-function _renderUserBar(user){
-  const bar = document.getElementById('userBar');
-  if(!bar) return;
-  if(user){
-    bar.innerHTML = `
-      <img src="${user.photoURL||''}" onerror="this.style.display='none'"
-           style="width:22px;height:22px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--accent)">
-      <span style="font-size:10px;color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${user.displayName||user.email}</span>
-      <span id="syncBadge" style="font-size:9px;font-family:'DM Mono',monospace;flex-shrink:0"></span>
-      <button onclick="signOut()" style="background:none;border:none;color:var(--t3);font-size:10px;cursor:pointer;padding:2px 5px;border-radius:5px;font-family:'DM Sans',sans-serif">Sair</button>`;
-    _setSyncStatus('synced');
-  } else {
-    bar.innerHTML = `
-      <span style="font-size:10px;color:var(--t2);flex:1">☁️ Backup na nuvem desativado</span>
-      <span id="syncBadge" style="font-size:9px;font-family:'DM Mono',monospace;color:var(--t3)">💾 Local</span>
-      <button onclick="signInGoogle()" style="background:var(--accent);color:#0b0d10;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Entrar</button>`;
   }
 }
 
@@ -4155,8 +3982,6 @@ load();
 renderBankEmojiGrid();
 renderHome();
 document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
-// Firebase auth (não bloqueia o app — funciona offline antes mesmo de autenticar)
-initAuth();
 </script>
 </body>
 </html>
