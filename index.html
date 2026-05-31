@@ -809,14 +809,35 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
         <input type="number" id="ccCardInitInvoice" placeholder="0,00" inputmode="decimal" step="0.01">
       </div>
     </div>
+    <div class="info-box" style="margin-bottom:12px">📅 Informe a <strong>próxima</strong> data real de fechamento e vencimento da fatura (dia e mês). O app calculará os ciclos futuros automaticamente.</div>
     <div class="frow">
       <div class="fg">
-        <label>Dia de Fechamento</label>
-        <input type="number" id="ccCardClose" placeholder="Ex: 15" inputmode="numeric" min="1" max="31">
+        <label>Dia Fechamento</label>
+        <input type="number" id="ccCardClose" placeholder="Ex: 5" inputmode="numeric" min="1" max="31">
       </div>
       <div class="fg">
-        <label>Dia de Vencimento</label>
-        <input type="number" id="ccCardDue" placeholder="Ex: 5" inputmode="numeric" min="1" max="31">
+        <label>Mês Fechamento</label>
+        <select id="ccCardCloseMonth">
+          <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
+          <option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option>
+          <option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
+          <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label>Dia Vencimento</label>
+        <input type="number" id="ccCardDue" placeholder="Ex: 15" inputmode="numeric" min="1" max="31">
+      </div>
+      <div class="fg">
+        <label>Mês Vencimento</label>
+        <select id="ccCardDueMonth">
+          <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
+          <option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option>
+          <option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
+          <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+        </select>
       </div>
     </div>
     <button class="btn-p" onclick="saveCCCard()">Salvar Cartão</button>
@@ -1004,7 +1025,16 @@ function fmt(n){ return 'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractio
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 function mkey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function curKey(){ return mkey(S.currentYear, S.currentMonth+1); }
-function getMonthTxs(){ return S.transactions.filter(t=>t.month===curKey()); }
+function getMonthTxs(){
+  const k = curKey();
+  return S.transactions.filter(t=>{
+    // Standard: transaction's recorded month matches
+    if(t.month===k) return true;
+    // Card expenses: also show in the month their invoice cycle falls into
+    if(t.type==='expense' && t.payMethod==='card' && t.ccInvoiceMonth && t.ccInvoiceMonth===k) return true;
+    return false;
+  });
+}
 
 // Patrimônio LÍQUIDO = saldo + investimentos - faturas FECHADAS
 // O saldo DISPONÍVEL (dinheiro) = apenas saldo em conta, SEM investimentos
@@ -1037,30 +1067,37 @@ function bankHasCC(bk){
 // Simplified: ccInvoice on the bank = the manually-set base, and txs of type expense with bankId add to it.
 
 // Compute invoice for a specific credit card
+// Only counts expenses that belong to the CURRENT invoice cycle.
+// Cycle: from day after previous close → up to and including current close date.
 function computeCardInvoice(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
-  // Get the card object (new model) or fallback to legacy
   const cards = bk.creditCards||[];
   const card = cards.find(c=>c.id===cardId);
   const base = card ? (card.initialInvoice||0) : (bk.ccInvoice||0);
-  const closeDay = card ? card.closeDay : (bk.ccCloseDay||15);
 
-  // Only expenses assigned to this card that have not passed closing date go to current invoice
-  // Expenses with payMethod=card on this bank/card
+  // Current invoice close date
+  const closeDate = getCardCloseDate(card, bk);
+  // Start of cycle = close date of previous month
+  const prevClose = new Date(closeDate);
+  prevClose.setMonth(prevClose.getMonth()-1);
+  prevClose.setDate(prevClose.getDate()+1); // day after prev close = cycle start
+
   const expenseTxs = S.transactions.filter(t=> {
     if(t.type!=='expense') return false;
     if(t.bankId!==bkId) return false;
     if(t.payMethod!=='card' && t.payMethod) return false;
     if(cardId) {
-      // if transaction has a creditCardId, it must match; if it doesn't have one, and there's only one card, assign to it
       if(t.creditCardId && t.creditCardId!==cardId) return false;
-      if(!t.creditCardId && cards.length>1) return false; // can't assign ambiguously
+      if(!t.creditCardId && cards.length>1) return false;
     }
+    // Only expenses within the current cycle
+    const txDate = new Date(t.date+'T00:00:00');
+    if(txDate < prevClose || txDate > closeDate) return false;
     return true;
   });
   const payments = S.transactions.filter(t=>
-    t.type==='cc_payment' && t.ccBankId===bkId && (cardId ? t.creditCardId===cardId : true)
+    t.type==='cc_payment' && t.ccBankId===bkId && (cardId ? (t.creditCardId===cardId||!t.creditCardId) : true)
   );
   const totalExp = expenseTxs.reduce((s,t)=>s+t.amount,0);
   const totalPay = payments.reduce((s,t)=>s+t.amount,0);
@@ -1080,13 +1117,17 @@ function computeCCInvoice(bkId){
   return computeCardInvoice(bkId, null);
 }
 
-// Get all expense transactions that belong to a specific invoice cycle of a card
+// Get all expense transactions that belong to the CURRENT invoice cycle of a card
 function getCardInvoiceTxs(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return [];
   const cards = bk.creditCards||[];
   const card = cards.find(c=>c.id===cardId);
-  const closeDay = card ? card.closeDay : (bk.ccCloseDay||15);
+
+  const closeDate = getCardCloseDate(card, bk);
+  const prevClose = new Date(closeDate);
+  prevClose.setMonth(prevClose.getMonth()-1);
+  prevClose.setDate(prevClose.getDate()+1);
 
   return S.transactions.filter(t=>{
     if(t.type!=='expense') return false;
@@ -1096,6 +1137,8 @@ function getCardInvoiceTxs(bkId, cardId){
       if(t.creditCardId && t.creditCardId!==cardId) return false;
       if(!t.creditCardId && (cards.length>1)) return false;
     }
+    const txDate = new Date(t.date+'T00:00:00');
+    if(txDate < prevClose || txDate > closeDate) return false;
     return true;
   });
 }
@@ -1108,36 +1151,59 @@ function getCardPayments(bkId, cardId){
   );
 }
 
-// Verifica se uma fatura de cartão está FECHADA
-// A fatura fecha quando hoje >= closeDay DO MÊS DE FECHAMENTO.
-// Ex: fechamento dia 5 → a fatura fecha no dia 5 do próximo mês (não dia 5 do mês atual).
-// Ciclo: do dia 6 de um mês até dia 5 do mês seguinte → fatura do mês seguinte.
-// Fatura FECHADA = já passou o dia de fechamento deste ciclo → gasto real que desconta do saldo.
-// Fatura ABERTA  = ainda não chegou o dia de fechamento → previsão futura.
-function isCardInvoiceClosed(closeDay){
-  const cd = closeDay||15;
-  const now = new Date();
-  const today = now.getDate();
-  // Se o fechamento é no dia cd: a fatura ABRE no dia cd+1 do mês anterior e FECHA no dia cd do mês atual.
-  // Enquanto today < cd  → ainda dentro do ciclo aberto → ABERTA
-  // Quando today >= cd   → o fechamento já ocorreu neste mês → FECHADA
-  return today >= cd;
+// ── LÓGICA DE FATURA (ciclo real com dia+mês de fechamento) ─────────────
+//
+// O usuário informa a PRÓXIMA data de fechamento (dia + mês).
+// A partir daí o app sabe:
+//   - Data de fechamento desta fatura: closeDay/closeMonth do ano corrente (ou próximo se já passou)
+//   - Fatura ABERTA  = hoje < data de fechamento → gastos ainda estão acumulando
+//   - Fatura FECHADA = hoje >= data de fechamento → fatura consolidada, desconta do saldo
+//
+// O ciclo repeats mensalmente: o próximo fechamento é sempre 1 mês após o anterior.
+// Exemplo: fecha dia 5/junho → próximo fecha dia 5/julho, e assim por diante.
+
+// Retorna a data de fechamento desta fatura como objeto Date (meia-noite)
+function getCardCloseDate(card, bk){
+  const closeDay = card ? (card.closeDay||5) : (bk&&bk.ccCloseDay||5);
+  // Se temos closeMonth definido no cartão, usamos como âncora para calcular o ciclo atual
+  if(card && card.closeMonth != null){
+    const anchor = new Date(new Date().getFullYear(), card.closeMonth, closeDay, 0, 0, 0);
+    // Se a âncora já passou, avança mês a mês até encontrar a próxima data de fechamento >= hoje
+    const today = new Date(); today.setHours(0,0,0,0);
+    let dt = new Date(anchor);
+    // Se a data âncora é no futuro ou hoje → usa ela
+    // Se já passou → avança mensalmente
+    while(dt < today){
+      dt.setMonth(dt.getMonth()+1);
+    }
+    return dt;
+  }
+  // Fallback: só o dia, calcular o próximo fechamento a partir de hoje
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cd = closeDay||5;
+  let dt = new Date(today.getFullYear(), today.getMonth(), cd, 0, 0, 0);
+  if(dt < today) dt.setMonth(dt.getMonth()+1);
+  return dt;
 }
 
-// Retorna o mês-chave da fatura aberta atual (para exibição como previsão)
-// Fatura aberta  → próximo mês (ainda não fechou, é previsão futura)
-// Fatura fechada → mês corrente (já é débito real)
-// Consistente com isCardInvoiceClosed: fecha quando today >= closeDay
+// Fatura FECHADA = hoje >= data de fechamento
+function isCardInvoiceClosed(closeDay, card, bk){
+  const closeDate = getCardCloseDate(card, bk);
+  const today = new Date(); today.setHours(0,0,0,0);
+  return today >= closeDate;
+}
+
+// Retorna o mês-chave da fatura do ciclo atual (aberto ou fechado)
+// Fatura aberta  → mês de fechamento (ainda acumulando)
+// Fatura fechada → mês de fechamento (já passou, é gasto real)
 function ccInvoiceMonthKey(bk){
   const now = new Date();
-  const closeDay = bk.ccCloseDay||15;
+  const closeDay = bk.ccCloseDay||5;
   if(now.getDate() < closeDay){
-    // Fatura ainda aberta → previsão para o próximo mês
     let m = now.getMonth()+2; let y = now.getFullYear();
     if(m>12){m-=12;y++;}
     return mkey(y,m);
   } else {
-    // Fatura fechada → gasto real este mês
     return mkey(now.getFullYear(), now.getMonth()+1);
   }
 }
@@ -1148,21 +1214,17 @@ function computeClosedCardInvoice(bkId, cardId){
   if(!bk) return 0;
   const cards = bk.creditCards||[];
   const card = cards.find(c=>c.id===cardId);
-  const closeDay = card ? (card.closeDay||15) : (bk.ccCloseDay||15);
-  // Só conta como gasto real se a fatura estiver fechada
-  if(!isCardInvoiceClosed(closeDay)) return 0;
+  if(!isCardInvoiceClosed(null, card, bk)) return 0;
   return computeCardInvoice(bkId, cardId);
 }
 
-// Computa o total da fatura ABERTA de um cartão (previsão para próximo mês)
+// Computa o total da fatura ABERTA de um cartão (previsão — ainda acumulando)
 function computeOpenCardInvoice(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
   const cards = bk.creditCards||[];
   const card = cards.find(c=>c.id===cardId);
-  const closeDay = card ? (card.closeDay||15) : (bk.ccCloseDay||15);
-  // Só é previsão se a fatura estiver ABERTA
-  if(isCardInvoiceClosed(closeDay)) return 0;
+  if(isCardInvoiceClosed(null, card, bk)) return 0;
   return computeCardInvoice(bkId, cardId);
 }
 
@@ -1238,14 +1300,23 @@ function isForecast(tx){
 }
 
 // For a CC card expense, compute which invoice month it belongs to
+// Uses getCardCloseDate to find the next close date >= spend date
 function ccExpenseInvoiceMonth(tx, bk, card){
   if(!bk || tx.payMethod !== 'card') return null;
-  const d = new Date(tx.date+'T12:00:00');
-  let m = d.getMonth(); let y = d.getFullYear();
-  const closeDay = card ? (card.closeDay||15) : (bk.ccCloseDay||15);
-  // If spend day >= closeDay → goes to NEXT invoice cycle (>= so same day as close goes next)
-  if(d.getDate() >= closeDay){ m++; if(m>11){m=0;y++;} }
-  return mkey(y, m+1);
+  const spendDate = new Date(tx.date+'T00:00:00');
+  // Find the invoice cycle that covers this spend date:
+  // The cycle closes on closeDate; if spendDate <= closeDate → this cycle
+  // Otherwise → next cycle
+  const closeDate = getCardCloseDate(card, bk);
+  // If spendDate is after the current close date, it belongs to a future cycle
+  let invoiceClose = new Date(closeDate);
+  // Walk back: find the earliest close date >= spendDate
+  while(invoiceClose > spendDate){
+    invoiceClose.setMonth(invoiceClose.getMonth()-1);
+  }
+  // Now invoiceClose < spendDate, so the correct invoice is the NEXT one
+  invoiceClose.setMonth(invoiceClose.getMonth()+1);
+  return mkey(invoiceClose.getFullYear(), invoiceClose.getMonth()+1);
 }
 
 // ════════════════════════════════════════════════════════
@@ -1855,12 +1926,15 @@ let currentInvoiceBankId = null;
 function openAddCCCard(bankId){
   editingCCCardBankId = bankId;
   editingCCCardId = null;
+  const now = new Date();
   document.getElementById('ccCardModalTitle').textContent = 'Novo Cartão de Crédito';
   document.getElementById('ccCardName').value = '';
   document.getElementById('ccCardLimit').value = '';
   document.getElementById('ccCardInitInvoice').value = '';
   document.getElementById('ccCardClose').value = '';
+  document.getElementById('ccCardCloseMonth').value = now.getMonth();
   document.getElementById('ccCardDue').value = '';
+  document.getElementById('ccCardDueMonth').value = now.getMonth();
   document.getElementById('btnDelCCCard').style.display = 'none';
   openModal('ccCardModal');
 }
@@ -1876,7 +1950,9 @@ function openEditCCCard(bankId, cardId){
   document.getElementById('ccCardLimit').value = card.limit||'';
   document.getElementById('ccCardInitInvoice').value = card.initialInvoice||'';
   document.getElementById('ccCardClose').value = card.closeDay||'';
+  document.getElementById('ccCardCloseMonth').value = (card.closeMonth != null ? card.closeMonth : new Date().getMonth());
   document.getElementById('ccCardDue').value = card.dueDay||'';
+  document.getElementById('ccCardDueMonth').value = (card.dueMonth != null ? card.dueMonth : new Date().getMonth());
   document.getElementById('btnDelCCCard').style.display = 'block';
   openModal('ccCardModal');
 }
@@ -1884,13 +1960,17 @@ function openEditCCCard(bankId, cardId){
 function saveCCCard(){
   const name = document.getElementById('ccCardName').value.trim();
   if(!name){showToast('⚠️ Informe o nome do cartão');return;}
+  const closeDay = parseInt(document.getElementById('ccCardClose').value)||5;
+  const closeMonth = parseInt(document.getElementById('ccCardCloseMonth').value);
+  const dueDay = parseInt(document.getElementById('ccCardDue').value)||15;
+  const dueMonth = parseInt(document.getElementById('ccCardDueMonth').value);
   const card = {
     id: editingCCCardId||uid(),
     name,
     limit: parseFloat(document.getElementById('ccCardLimit').value)||0,
     initialInvoice: parseFloat(document.getElementById('ccCardInitInvoice').value)||0,
-    closeDay: parseInt(document.getElementById('ccCardClose').value)||15,
-    dueDay: parseInt(document.getElementById('ccCardDue').value)||5,
+    closeDay, closeMonth,
+    dueDay, dueMonth,
   };
   const bkIdx = S.banks.findIndex(b=>b.id===editingCCCardBankId);
   if(bkIdx<0){showToast('⚠️ Banco não encontrado');return;}
@@ -2022,10 +2102,12 @@ function openInvoiceDetail(bankId, cardId){
   const dueDay = card ? card.dueDay : (bk&&bk.ccDueDay||5);
 
   document.getElementById('invDetTitle').textContent = '💳 '+cardName;
-  const isClosed = isCardInvoiceClosed(closeDay);
+  const isClosed = isCardInvoiceClosed(null, card, bk);
+  const closeDate = getCardCloseDate(card, bk);
+  const closeDateStr = closeDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
   const statusStr = isClosed
     ? `🔒 Fatura FECHADA — gasto real · Vence dia ${dueDay}`
-    : `⏳ Fatura ABERTA — previsão próx. mês · Fecha dia ${closeDay}`;
+    : `⏳ Fatura ABERTA — acumulando gastos · Fecha em ${closeDateStr}`;
   const statusColor = isClosed ? 'var(--red)' : 'var(--orange)';
   document.getElementById('invDetInfo').innerHTML = `<span style="color:${statusColor};font-weight:600">${statusStr}</span>`;
 
@@ -2308,22 +2390,20 @@ function renderCCPanel(){
     const pct   = limit>0 ? Math.min(100,Math.round(inv/limit*100)) : 0;
     const barColor = pct>80 ? 'var(--red)' : pct>60 ? 'var(--orange)' : 'var(--blue)';
     const cardName = card ? card.name : cc.name;
-    const isClosed = isCardInvoiceClosed(closeDay);
-
-    let daysToClose = closeDay - now.getDate();
-    if(daysToClose < 0){
-      const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-      daysToClose = daysInMonth - now.getDate() + closeDay;
-    }
+    const isClosed = isCardInvoiceClosed(null, card, {ccCloseDay: closeDay});
+    const closeDate = getCardCloseDate(card, {ccCloseDay: closeDay, ccCloseMonth: card&&card.closeMonth});
+    const today0 = new Date(); today0.setHours(0,0,0,0);
+    const daysToClose = Math.round((closeDate - today0)/(1000*60*60*24));
+    const closeDateStr = closeDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
     const urgencyClass = daysToClose <= 3 ? 'cc-urg-danger' : daysToClose <= 7 ? 'cc-urg-warn' : 'cc-urg-ok';
 
-    // Status: fatura fechada (gasto real) ou aberta (previsão próximo mês)
+    // Status: fatura fechada (gasto real) ou aberta (ainda acumulando)
     let statusLabel, statusClass;
     if(isClosed){
       statusLabel = '🔒 Fatura fechada — gasto real';
       statusClass = 'cc-urg-danger';
     } else {
-      statusLabel = `⏳ Aberta · fecha em ${daysToClose}d`;
+      statusLabel = `⏳ Aberta · fecha ${closeDateStr} (${daysToClose}d)`;
       statusClass = urgencyClass;
     }
 
@@ -2411,17 +2491,19 @@ function renderBankFolders(){
         const inv = computeCardInvoice(bk.id, card.id);
         const pct = card.limit>0 ? Math.min(100,Math.round(inv/card.limit*100)) : 0;
         const barColor = pct>80?'var(--red)':pct>60?'var(--orange)':'var(--blue)';
-        const isClosed = isCardInvoiceClosed(card.closeDay||15);
+        const isClosed = isCardInvoiceClosed(null, card, bk);
+        const closeDate2 = getCardCloseDate(card, bk);
+        const closeDateStr2 = closeDate2.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
         const invColor = isClosed ? 'var(--red)' : 'var(--orange)';
         const invStatus = isClosed
           ? `<span style="font-size:8px;color:var(--red);margin-left:4px">🔒 Fechada</span>`
-          : `<span style="font-size:8px;color:var(--orange);margin-left:4px">⏳ Aberta (prev. próx. mês)</span>`;
+          : `<span style="font-size:8px;color:var(--orange);margin-left:4px">⏳ Aberta · fecha ${closeDateStr2}</span>`;
         body += `<div class="cc-card-item">
           <div class="cc-card-row">
             <span class="cc-card-name">💳 ${card.name}</span>
             <span class="cc-card-inv" style="color:${invColor}">${fmt(inv)}</span>
           </div>
-          <div class="cc-card-meta">Fecha dia ${card.closeDay} · Vence dia ${card.dueDay}${card.limit>0?' · Limite '+fmt(card.limit):''}${invStatus}</div>
+          <div class="cc-card-meta">Fecha ${closeDateStr2} · Vence dia ${card.dueDay}${card.limit>0?' · Limite '+fmt(card.limit):''}${invStatus}</div>
           ${card.limit>0?`<div class="cc-card-bar"><div class="cc-card-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>`:''}
           <div class="cc-card-actions">
             <button class="bk-sub-btn" onclick="event.stopPropagation();openInvoiceDetail('${bk.id}','${card.id}')">🧾 Ver fatura</button>
