@@ -770,6 +770,19 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       </div>
     </div>
 
+    <!-- INVESTMENT DEDUCT TOGGLE (only for investment type) -->
+    <div id="txInvDeductWrap" style="display:none">
+      <div class="fg">
+        <div class="tog-row">
+          <div>
+            <span style="font-size:13px;color:var(--text)">💸 Descontar do saldo disponível</span>
+            <div style="font-size:10px;color:var(--t2);margin-top:2px" id="txInvDeductHint">Ative se o dinheiro saiu da sua conta para investir</div>
+          </div>
+          <button class="tog" id="invDeductTog" onclick="toggleInvDeduct()"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- INSTALLMENTS (expense on CC only) -->
     <div id="txParcelWrap" style="display:none">
       <div class="fg">
@@ -964,6 +977,7 @@ let currentBankId = null;
 let txType = 'expense';
 let txRecur = false;
 let txParcel = false;
+let txInvDeduct = false; // whether investment tx deducts from balance
 let payMethod = 'card'; // 'card' | 'cash' — only for expenses
 let bankEmoji = '🏦';
 let bkCCOn = false;
@@ -1490,6 +1504,10 @@ function setTxType(t){
   // CC card select: hide when not expense
   const ccCardWrap = document.getElementById('txCCCardWrap');
   if(ccCardWrap && t!=='expense') ccCardWrap.style.display='none';
+  // Investment deduct toggle: only for investment type
+  const invDeductWrap = document.getElementById('txInvDeductWrap');
+  if(invDeductWrap) invDeductWrap.style.display = t==='investment' ? 'block' : 'none';
+  if(t!=='investment'){ txInvDeduct=false; document.getElementById('invDeductTog').classList.remove('on'); }
   updateParcelWrap();
   updatePayMethodInfo();
   if(t!=='cc_payment'){
@@ -1572,6 +1590,14 @@ function toggleRecur(){
   txRecur=!txRecur;
   document.getElementById('recurTog').classList.toggle('on',txRecur);
 }
+function toggleInvDeduct(){
+  txInvDeduct=!txInvDeduct;
+  document.getElementById('invDeductTog').classList.toggle('on',txInvDeduct);
+  const hint = document.getElementById('txInvDeductHint');
+  if(hint) hint.textContent = txInvDeduct
+    ? '✅ O valor será descontado do dinheiro disponível'
+    : 'Ative se o dinheiro saiu da sua conta para investir';
+}
 function toggleParcel(){
   txParcel=!txParcel;
   document.getElementById('parcelTog').classList.toggle('on',txParcel);
@@ -1579,7 +1605,7 @@ function toggleParcel(){
 }
 
 function resetTxForm(){
-  txType='expense'; txRecur=false; txParcel=false; payMethod='card';
+  txType='expense'; txRecur=false; txParcel=false; payMethod='card'; txInvDeduct=false;
   document.getElementById('txModalTitle').textContent='Novo Lançamento';
   document.getElementById('txAmt').value='';
   document.getElementById('txName').value='';
@@ -1789,6 +1815,7 @@ function saveTx(){
       id:uid(),type:txType,name,amount,category,bankId,bankToId,
       date, month:txMonth, recurrent:false,
       payMethod:effPayMethod,
+      ...(txType==='investment' ? {deductBalance: txInvDeduct} : {}),
       ...(creditCardId ? {creditCardId} : {}),
       ...(ccInvoiceMonth ? {ccInvoiceMonth} : {})
     });
@@ -1810,6 +1837,7 @@ function openEditTx(id){
   const t=S.transactions.find(x=>x.id===id);
   if(!t) return;
   txType=t.type; txRecur=t.recurrent||false; txParcel=false;
+  txInvDeduct = t.type==='investment' ? (t.deductBalance||false) : false;
   payMethod=t.payMethod||(t.type==='expense'?'card':'cash');
   document.getElementById('txModalTitle').textContent='Editar Lançamento';
   document.getElementById('txAmt').value=t.amount;
@@ -1828,6 +1856,12 @@ function openEditTx(id){
   document.getElementById('txBankTo').value=t.bankToId||'';
   if(t.type==='cc_payment') populateCCBankSelect();
   setTxType(t.type);
+  // Sync invDeduct toggle UI after setTxType (which resets it)
+  if(t.type==='investment'){
+    document.getElementById('invDeductTog').classList.toggle('on', txInvDeduct);
+    const hint = document.getElementById('txInvDeductHint');
+    if(hint) hint.textContent = txInvDeduct ? '✅ O valor será descontado do dinheiro disponível' : 'Ative se o dinheiro saiu da sua conta para investir';
+  }
   if(t.ccBankId) document.getElementById('txCCBank').value=t.ccBankId;
   onTxBankChange();
   openModal('txModal');
@@ -2268,8 +2302,8 @@ function renderHome(){
   const expenseCard = allTxs.filter(t=>t.type==='expense' && t.payMethod==='card').reduce((s,t)=>s+t.amount,0);
   // Total de despesas para exibição nos cards de métrica
   const expense = expenseCash + expenseCard;
-  // Investimentos: só os confirmados (data <= hoje) saem do saldo
-  const investedConfirmed = confirmedInv.reduce((s,t)=>s+t.amount,0);
+  // Investimentos via lançamento: só desconta os confirmados E com deductBalance=true
+  const investedConfirmed = confirmedInv.filter(t=>t.deductBalance===true).reduce((s,t)=>s+t.amount,0);
   const investedForecast  = forecastInv.reduce((s,t)=>s+t.amount,0);
 
   // Faturas CC (calculadas a partir dos gastos de cartão registrados)
@@ -2278,12 +2312,11 @@ function renderHome(){
   const ccOpenTotal   = S.banks.reduce((s,b)=>s+computeOpenCCInvoice(b.id),0);
   const ccTotal = ccClosedTotal + ccOpenTotal;
 
-  // Total apartado em investimentos (bancos) — sempre desconta do disponível
+  // Total apartado em investimentos (bancos) — apenas informativo, não desconta do disponível
   const totalInvested = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
 
-  // Saldo disponível = entradas - gastos em dinheiro - TODA fatura CC (aberta+fechada) - investimentos confirmados - investimentos apartados em banco
-  // Gastos de cartão saem via fatura (ccTotal), não duas vezes
-  const balance = income - expenseCash - ccTotal - investedConfirmed - totalInvested;
+  // Saldo disponível = entradas - gastos em dinheiro - TODA fatura CC - investimentos lançados com "descontar do saldo"
+  const balance = income - expenseCash - ccTotal - investedConfirmed;
 
   // Indicador se o saldo inclui previsões
   const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0;
@@ -2311,7 +2344,7 @@ function renderHome(){
   }
 
   // ── Budget bar ──
-  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + totalInvested + ccTotal) / income * 100)) : 0;
+  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + ccTotal) / income * 100)) : 0;
   const pctEl = document.getElementById('progPct');
   pctEl.textContent = pct + '%';
   pctEl.style.color = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
@@ -2336,11 +2369,14 @@ function renderHome(){
     document.getElementById('hExpSub').textContent = confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
   }
 
-  // Investimentos: mostra total apartado (confirmados via tx + banco) + alerta de futuros
-  document.getElementById('hInv').textContent = fmt(totalInvested + investedConfirmed);
+  // Investimentos: mostra total geral + indicação de quanto descontou do saldo
+  const allInvConfirmed = confirmedInv.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('hInv').textContent = fmt(allInvConfirmed + totalInvested);
   document.getElementById('hInvSub').textContent = investedForecast > 0
     ? `⏳ ${fmt(investedForecast)} agendado`
-    : ((totalInvested + investedConfirmed) > 0 ? '🔒 Apartado — descontado' : 'Nenhum investimento');
+    : investedConfirmed > 0
+      ? `💸 ${fmt(investedConfirmed)} descontado`
+      : ((allInvConfirmed + totalInvested) > 0 ? '🔒 Apartado' : 'Nenhum investimento');
 
   document.getElementById('hCC').textContent = fmt(ccTotal);
   if(ccClosedTotal > 0 && ccOpenTotal > 0){
@@ -2721,6 +2757,12 @@ function renderTxList(txs, containerId){
     // Card spend tag
     const cardTag = (t.type==='expense' && (t.payMethod==='card'||(!t.payMethod && bk && bk.hasCC)))
       ? `<span class="tag-card-spend">💳 Cartão</span>` : '';
+    // Investimento: tag indicando se desconta ou não do saldo
+    const invDeductTag = t.type==='investment'
+      ? (t.deductBalance===true
+          ? `<span style="background:rgba(255,79,79,.12);color:var(--red);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600">💸 desconta saldo</span>`
+          : `<span style="background:rgba(127,255,110,.08);color:var(--t2);border-radius:3px;padding:1px 5px;font-size:9px">📥 direto p/ invest.</span>`)
+      : '';
     let bankInfo = bk?`${bk.icon} ${bk.name}`:'';
     if(bkTo) bankInfo += ` → ${bkTo.icon} ${bkTo.name}`;
     if(bkCC) bankInfo += ` · Cartão: ${bkCC.icon} ${bkCC.name}`;
@@ -2732,7 +2774,7 @@ function renderTxList(txs, containerId){
         <div class="tx-meta">
           ${t.category&&t.type!=='cc_payment'?`<span class="tag">${t.category}</span>`:''}
           ${bankInfo?`<span>${bankInfo}</span>`:''}
-          ${cardTag}${parcelTag}${recurTag}${statusTag}
+          ${cardTag}${invDeductTag}${parcelTag}${recurTag}${statusTag}
         </div>
       </div>
       <div class="tx-val ${cls}">${sign} ${fmt(t.amount)}</div>
