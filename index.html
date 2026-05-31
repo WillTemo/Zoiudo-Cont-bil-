@@ -12,6 +12,10 @@
 <link rel="manifest" id="pwaManifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase SDKs (compat v9) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg:#0b0d10;--surface:#13161d;--s2:#1a1e28;--s3:#20263a;
@@ -285,17 +289,36 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .inv-summary{background:linear-gradient(135deg,#0e1f12,#0b1420);border:1px solid #203020;border-radius:var(--r);padding:16px;margin-bottom:12px;text-align:center}
 .inv-total-lbl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t2);margin-bottom:5px}
 .inv-total{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:32px;color:var(--accent);letter-spacing:-.5px}
-.inv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:9px;cursor:pointer}
-.inv-card:active{border-color:var(--accent)}
+
+/* NEW HERO */
+.inv-hero{background:linear-gradient(155deg,#0c1f0c 0%,#091320 55%,#100918 100%);border:1px solid rgba(127,255,110,.13);border-radius:0;padding:20px 16px 16px;position:relative;overflow:hidden}
+.inv-hero::before{content:'';position:absolute;top:-50px;right:-30px;width:180px;height:180px;background:radial-gradient(circle,rgba(127,255,110,.08) 0%,transparent 65%);pointer-events:none}
+.inv-hero-eyebrow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.inv-hero-total{font-family:'Times New Roman',Times,serif;font-weight:700;font-size:40px;letter-spacing:-1.5px;line-height:1;color:var(--accent)}
+.inv-pill{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:7px 8px;text-align:center}
+.inv-pill-lbl{display:block;font-size:8px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.inv-pill-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+
+/* INVESTMENT CARDS (new) */
+.inv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
+.inv-card:active{border-color:var(--accent);opacity:.9}
 .inv-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.inv-ico{width:38px;height:38px;background:rgba(127,255,110,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
-.inv-inf{flex:1}
-.inv-name{font-size:13px;font-weight:600}
-.inv-bank{font-size:10px;color:var(--t2);margin-top:1px}
-.inv-amt{font-family:'DM Mono',monospace;font-size:16px;color:var(--accent)}
-.inv-meta{display:flex;gap:12px}
+.inv-ico{width:40px;height:40px;background:rgba(127,255,110,.1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.inv-inf{flex:1;min-width:0}
+.inv-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inv-bank{font-size:10px;color:var(--t2);margin-top:2px}
+.inv-amt{font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);font-weight:500}
+.inv-meta{display:flex;gap:10px;flex-wrap:wrap}
 .inv-mi .lbl{font-size:9px;color:var(--t2)}
 .inv-mi .val{font-family:'DM Mono',monospace;font-size:11px;margin-top:1px}
+
+/* DETAIL DRAWER */
+.idd-chart-wrap{height:80px;display:flex;align-items:flex-end;gap:3px;margin:8px 0}
+.idd-bar-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.idd-bar{border-radius:3px 3px 0 0;background:var(--accent);transition:height .4s cubic-bezier(.34,1.4,.64,1);min-height:3px;width:100%}
+.idd-bar-lbl{font-size:8px;color:var(--t3);font-family:'DM Mono',monospace;text-align:center;white-space:nowrap}
+.idd-hist-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.idd-hist-row:last-child{border-bottom:none}
 
 /* INFO BOX */
 .info-box{background:rgba(127,255,110,.06);border:1px solid rgba(127,255,110,.2);border-radius:var(--rsm);padding:10px 12px;font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.5}
@@ -413,6 +436,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <button onclick="changeMonth(1)">›</button>
   </div>
 </div>
+
+<!-- USER / SYNC BAR -->
+<div id="userBar" style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--surface);border-bottom:1px solid var(--border);min-height:34px"></div>
 
 <!-- PAGE: HOME -->
 <div id="page-home" class="page on">
@@ -577,34 +603,51 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 
 <!-- PAGE: INVESTMENTS -->
 <div id="page-investments" class="page">
-  <div class="stitle" style="padding-top:16px">
-    <h2>Investimentos</h2>
-    <div style="display:flex;gap:6px">
-      <button class="btn-sm" style="background:var(--s2);color:var(--text);border:1px solid var(--border)" onclick="openInvHistory()">📋 Histórico</button>
-      <button class="btn-sm" onclick="openInvFromPage()">+ Novo</button>
+  <!-- Hero Header -->
+  <div class="inv-hero">
+    <div class="inv-hero-eyebrow">
+      <span class="hero-dot"></span>
+      <span style="font-size:9px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--t2)">Patrimônio investido</span>
     </div>
-  </div>
-  <div class="invpage">
-    <div class="inv-summary">
-      <div class="inv-total-lbl">Total Investido</div>
-      <div class="inv-total" id="invTotal">R$ 0,00</div>
-      <div id="invSummaryYield" style="font-size:11px;color:var(--green);margin-top:4px;font-family:'DM Mono',monospace"></div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
-        <div style="background:rgba(127,255,110,.08);border:1px solid rgba(127,255,110,.2);border-radius:8px;padding:7px 14px;text-align:center">
-          <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:600">Aportes</div>
-          <div id="invTotalDeposited" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);margin-top:2px">R$ 0,00</div>
-        </div>
-        <div style="background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.2);border-radius:8px;padding:7px 14px;text-align:center">
-          <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:600">Saques</div>
-          <div id="invTotalWithdrawn" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--purple);margin-top:2px">R$ 0,00</div>
-        </div>
-        <div style="background:rgba(93,240,160,.08);border:1px solid rgba(93,240,160,.2);border-radius:8px;padding:7px 14px;text-align:center">
-          <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:600">Rendimento</div>
-          <div id="invTotalYieldSum" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--green);margin-top:2px">R$ 0,00</div>
-        </div>
+    <div class="inv-hero-total" id="invTotal">R$ 0,00</div>
+    <div id="invSummaryYield" style="font-size:11px;color:var(--green);margin-top:3px;font-family:'DM Mono',monospace;min-height:16px"></div>
+    <!-- previsão de entrada -->
+    <div id="invForecastRow" style="display:none;margin-top:8px;background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:10px;padding:8px 12px;align-items:center;justify-content:space-between">
+      <span style="font-size:10px;color:var(--blue);font-weight:600">⏳ Previsto próx. mês</span>
+      <span id="invForecastAmt" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--blue)">R$ 0,00</span>
+    </div>
+    <!-- 3 pills -->
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <div class="inv-pill" style="border-color:rgba(127,255,110,.25)">
+        <span class="inv-pill-lbl">Aportes</span>
+        <span id="invTotalDeposited" class="inv-pill-val" style="color:var(--accent)">R$ 0,00</span>
+      </div>
+      <div class="inv-pill" style="border-color:rgba(181,123,238,.25)">
+        <span class="inv-pill-lbl">Saques</span>
+        <span id="invTotalWithdrawn" class="inv-pill-val" style="color:var(--purple)">R$ 0,00</span>
+      </div>
+      <div class="inv-pill" style="border-color:rgba(93,240,160,.25)">
+        <span class="inv-pill-lbl">Rendim.</span>
+        <span id="invTotalYieldSum" class="inv-pill-val" style="color:var(--green)">R$ 0,00</span>
       </div>
     </div>
+  </div>
+
+  <!-- action bar -->
+  <div style="display:flex;gap:8px;padding:0 16px 12px">
+    <button class="btn-p" style="flex:1;padding:11px;font-size:13px" onclick="openInvFromPage()">＋ Novo Investimento</button>
+  </div>
+
+  <div class="invpage" style="padding-top:0">
     <div id="invList"><div class="empty"><div class="ei">📈</div><p>Nenhum investimento</p></div></div>
+  </div>
+</div>
+
+<!-- INVESTMENT DETAIL DRAWER -->
+<div class="modal-ov" id="invDetailDrawer" onclick="closeBg(event,'invDetailDrawer')">
+  <div class="modal" style="max-height:96dvh">
+    <div class="mhandle"></div>
+    <div id="invDetailContent"></div>
   </div>
 </div>
 
@@ -1083,48 +1126,214 @@ let selectedInvType = 'cdb';
 const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸',cc_payment:'💳'};
 
 // ════════════════════════════════════════════════════════
-// STORAGE
+// FIREBASE CONFIG  ← substitua pelos seus valores
 // ════════════════════════════════════════════════════════
-function save(){ localStorage.setItem('zoiudo_v4', JSON.stringify(S)); }
+const FIREBASE_CONFIG = {
+  apiKey:            "COLE_AQUI_apiKey",
+  authDomain:        "COLE_AQUI_authDomain",
+  projectId:         "COLE_AQUI_projectId",
+  storageBucket:     "COLE_AQUI_storageBucket",
+  messagingSenderId: "COLE_AQUI_messagingSenderId",
+  appId:             "COLE_AQUI_appId"
+};
+
+// ════════════════════════════════════════════════════════
+// FIREBASE STATE
+// ════════════════════════════════════════════════════════
+let _fbApp = null, _fbAuth = null, _fbDb = null;
+let _currentUser = null;
+let _syncTimeout = null;
+let _syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error' | 'offline'
+
+// ── Bootstrap Firebase (lazy, evita erros se config inválida) ──
+function _initFirebase(){
+  if(_fbApp) return true;
+  if(FIREBASE_CONFIG.apiKey === 'COLE_AQUI_apiKey'){
+    console.warn('Firebase não configurado — rodando só com localStorage');
+    return false;
+  }
+  try{
+    _fbApp  = firebase.initializeApp(FIREBASE_CONFIG);
+    _fbAuth = firebase.auth();
+    _fbDb   = firebase.firestore();
+    // Persistência offline nativa do Firestore
+    _fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    return true;
+  }catch(e){ console.error('Firebase init error',e); return false; }
+}
+
+// ── Caminho do documento do usuário ──
+function _userDoc(){
+  if(!_fbDb || !_currentUser) return null;
+  return _fbDb.collection('users').doc(_currentUser.uid).collection('data').doc('state');
+}
+
+// ── Status badge no header ──
+function _setSyncStatus(status, detail){
+  _syncStatus = status;
+  const el = document.getElementById('syncBadge');
+  if(!el) return;
+  const map = {
+    local:   { icon:'💾', text:'Local',      color:'var(--t3)' },
+    syncing: { icon:'🔄', text:'Salvando…',  color:'var(--orange)' },
+    synced:  { icon:'☁️', text:'Salvo',      color:'var(--green)' },
+    error:   { icon:'⚠️', text:'Erro sync',  color:'var(--red)' },
+    offline: { icon:'📵', text:'Offline',    color:'var(--t2)' },
+  };
+  const m = map[status] || map.local;
+  el.textContent = m.icon + ' ' + m.text;
+  el.style.color = m.color;
+  if(detail) console.warn('Sync:', detail);
+}
+
+// ════════════════════════════════════════════════════════
+// STORAGE  (localStorage sempre + Firebase quando logado)
+// ════════════════════════════════════════════════════════
+function save(){
+  // 1. Sempre salva local primeiro (garantia offline)
+  localStorage.setItem('zoiudo_v4', JSON.stringify(S));
+
+  // 2. Debounce: envia ao Firebase após 800ms de inatividade
+  if(!_currentUser || !_fbDb){ _setSyncStatus('local'); return; }
+  clearTimeout(_syncTimeout);
+  _setSyncStatus('syncing');
+  _syncTimeout = setTimeout(_pushToFirebase, 800);
+}
+
+async function _pushToFirebase(){
+  const doc = _userDoc();
+  if(!doc) return;
+  try{
+    await doc.set({
+      data: JSON.stringify(S),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      version: 4,
+      appVersion: 'zoiudo-v4'
+    });
+    _setSyncStatus('synced');
+  }catch(e){
+    _setSyncStatus('error', e.message);
+  }
+}
+
+async function _pullFromFirebase(){
+  const doc = _userDoc();
+  if(!doc) return false;
+  try{
+    const snap = await doc.get();
+    if(!snap.exists) return false;
+    const raw = snap.data().data;
+    if(!raw) return false;
+    const parsed = JSON.parse(raw);
+    _applyLoadedState(parsed);
+    localStorage.setItem('zoiudo_v4', raw); // espelha localmente
+    return true;
+  }catch(e){
+    console.error('Pull error', e);
+    return false;
+  }
+}
+
+// Aplica estado carregado (Firebase ou localStorage) com migrações
+function _applyLoadedState(parsed){
+  S = parsed;
+  S.banks.forEach(bk=>{
+    if(!bk.creditCards) bk.creditCards=[];
+    if(!bk.investments)  bk.investments=[];
+  });
+  if(!S.invHistory) S.invHistory=[];
+}
+
 function load(){
+  // Carrega local imediatamente (app funciona offline sem delay)
   const d = localStorage.getItem('zoiudo_v4');
   if(d){
-    try{
-      S = JSON.parse(d);
-      // Ensure new arrays exist on legacy banks
-      S.banks.forEach(bk=>{
-        if(!bk.creditCards) bk.creditCards=[];
-        if(!bk.investments) bk.investments=[];
-      });
-      if(!S.invHistory) S.invHistory=[];
-    }catch(e){}
+    try{ _applyLoadedState(JSON.parse(d)); }catch(e){}
     return;
   }
-  // migrate v3
+  // Migração v3
   const old3 = localStorage.getItem('zoiudo_v3');
   if(old3){
     try{
       const o = JSON.parse(old3);
-      // banks from v3 (had subs)
       (o.banks||[]).forEach(bk=>{
-        const subs = (o.subs||[]).filter(s=>s.bankId===bk.id);
-        const contaSub = subs.find(s=>s.type==='conta')||subs.find(s=>s.type==='savings');
-        const invSub = subs.find(s=>s.type==='investment');
-        const ccSub = subs.find(s=>s.type==='cc');
+        const subs=(o.subs||[]).filter(s=>s.bankId===bk.id);
+        const contaSub=subs.find(s=>s.type==='conta')||subs.find(s=>s.type==='savings');
+        const invSub=subs.find(s=>s.type==='investment');
+        const ccSub=subs.find(s=>s.type==='cc');
         S.banks.push({
-          id:bk.id, name:bk.name, icon:bk.icon||'🏦', color:bk.color||'#7fff6e',
-          balance: contaSub ? (contaSub.balance||0) : 0,
-          investment: invSub ? (invSub.balance||0) : 0,
-          hasCC: !!ccSub,
-          ccLimit: ccSub?(ccSub.limit||0):0,
-          ccInvoice: ccSub?(ccSub.balance||0):0,
-          ccCloseDay: 15, ccDueDay: 5
+          id:bk.id,name:bk.name,icon:bk.icon||'🏦',color:bk.color||'#7fff6e',
+          balance:contaSub?(contaSub.balance||0):0,
+          investment:invSub?(invSub.balance||0):0,
+          hasCC:!!ccSub,ccLimit:ccSub?(ccSub.limit||0):0,
+          ccInvoice:ccSub?(ccSub.balance||0):0,
+          ccCloseDay:15,ccDueDay:5
         });
       });
-      (o.transactions||[]).forEach(t=>{
-        S.transactions.push({...t, bankToId:t.bankToId||''});
-      });
+      (o.transactions||[]).forEach(t=>S.transactions.push({...t,bankToId:t.bankToId||''}));
     }catch(e){}
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// AUTH (Google Sign-In)
+// ════════════════════════════════════════════════════════
+function initAuth(){
+  if(!_initFirebase()) return;
+  _fbAuth.onAuthStateChanged(async user => {
+    _currentUser = user;
+    if(user){
+      _renderUserBar(user);
+      _setSyncStatus('syncing');
+      const pulled = await _pullFromFirebase();
+      if(pulled){
+        renderHome();
+        if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
+        _setSyncStatus('synced');
+      } else {
+        // Sem dados no Firebase ainda — empurra o localStorage atual
+        await _pushToFirebase();
+      }
+    } else {
+      _renderUserBar(null);
+      _setSyncStatus('local');
+    }
+  });
+
+  // Detecta online/offline
+  window.addEventListener('online',  ()=>{ _setSyncStatus('syncing'); _pushToFirebase(); });
+  window.addEventListener('offline', ()=>_setSyncStatus('offline'));
+}
+
+function signInGoogle(){
+  if(!_initFirebase()) return showToast('⚠️ Firebase não configurado');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+  _fbAuth.signInWithPopup(provider).catch(e=>showToast('❌ ' + e.message));
+}
+
+function signOut(){
+  if(!_fbAuth) return;
+  if(!confirm('Sair da conta? Os dados continuam salvos localmente.')) return;
+  _fbAuth.signOut();
+}
+
+function _renderUserBar(user){
+  const bar = document.getElementById('userBar');
+  if(!bar) return;
+  if(user){
+    bar.innerHTML = `
+      <img src="${user.photoURL||''}" onerror="this.style.display='none'"
+           style="width:22px;height:22px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--accent)">
+      <span style="font-size:10px;color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${user.displayName||user.email}</span>
+      <span id="syncBadge" style="font-size:9px;font-family:'DM Mono',monospace;flex-shrink:0"></span>
+      <button onclick="signOut()" style="background:none;border:none;color:var(--t3);font-size:10px;cursor:pointer;padding:2px 5px;border-radius:5px;font-family:'DM Sans',sans-serif">Sair</button>`;
+    _setSyncStatus('synced');
+  } else {
+    bar.innerHTML = `
+      <span style="font-size:10px;color:var(--t2);flex:1">☁️ Backup na nuvem desativado</span>
+      <span id="syncBadge" style="font-size:9px;font-family:'DM Mono',monospace;color:var(--t3)">💾 Local</span>
+      <button onclick="signInGoogle()" style="background:var(--accent);color:#0b0d10;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Entrar</button>`;
   }
 }
 
@@ -2015,13 +2224,6 @@ function saveTx(){
               type: 'deposit', amount, date, note: name
             });
           }
-        }
-      }
-      // Se deductBalance=true, desconta do saldo do banco
-      if(txInvDeduct && bankId){
-        const bkIdx = S.banks.findIndex(b=>b.id===bankId);
-        if(bkIdx>-1){
-          S.banks[bkIdx].balance = (S.banks[bkIdx].balance||0) - amount;
         }
       }
     }
@@ -3218,16 +3420,15 @@ function renderBanksPage(){
 }
 
 // ════════════════════════════════════════════════════════
-// RENDER: INVESTMENTS
+// RENDER: INVESTMENTS (redesigned)
 // ════════════════════════════════════════════════════════
 function renderInvestmentsPage(){
-  // Map all bank-level investments
+  // Collect bank-level investments
   const invItems = [];
   S.banks.forEach(b=>{
     (b.investments||[]).forEach(inv=>{
       invItems.push({...inv, bankId: b.id, _source:'bank'});
     });
-    // legacy investment field
     if((b.investment||0)>0){
       invItems.push({
         id:'_leg_'+b.id, name:b.name+' (patrimônio)',
@@ -3237,23 +3438,25 @@ function renderInvestmentsPage(){
     }
   });
 
-  // Also aggregate tx-based investments (type=investment/withdrawal) not linked to bank.investments
+  // TX-based investments (not linked to bank.investments)
+  const bankInvIds = new Set(invItems.map(i=>i.id));
   const txMap={};
-  S.transactions.filter(t=>t.type==='investment'||t.type==='withdrawal').forEach(t=>{
-    if(!txMap[t.name]) txMap[t.name]={name:t.name,invested:0,withdrawn:0,bankId:t.bankId,lastDate:t.date,invType:'outro',_source:'tx'};
+  S.transactions.filter(t=>(t.type==='investment'||t.type==='withdrawal') && !t.invId).forEach(t=>{
+    if(!txMap[t.name]) txMap[t.name]={name:t.name,invested:0,withdrawn:0,bankId:t.bankId,lastDate:t.date,invType:'outro',_source:'tx',id:'_tx_'+t.name};
     if(t.type==='investment') txMap[t.name].invested+=t.amount;
     else txMap[t.name].withdrawn+=t.amount;
     if(t.date>txMap[t.name].lastDate) txMap[t.name].lastDate=t.date;
   });
   const txItems = Object.values(txMap);
 
-  const totalBankInv = invItems.reduce((s,i)=>s+(i.amount||0),0);
-  const totalTxInv = txItems.reduce((s,i)=>s+(i.invested-i.withdrawn),0);
-  const grandTotal = totalBankInv + totalTxInv;
+  const totalBankInv = invItems.filter(i=>i._source!=='legacy').reduce((s,i)=>s+(i.amount||0),0);
+  const totalLegacy  = invItems.filter(i=>i._source==='legacy').reduce((s,i)=>s+(i.amount||0),0);
+  const totalTxInv   = txItems.reduce((s,i)=>s+(i.invested-i.withdrawn),0);
+  const grandTotal   = totalBankInv + totalLegacy + totalTxInv;
 
   document.getElementById('invTotal').textContent = fmt(grandTotal);
 
-  // Show yield summary
+  // Yield summary
   const totalYield = invItems.reduce((s,i)=>s+(i.yieldAmt||0),0);
   const yieldEl = document.getElementById('invSummaryYield');
   if(yieldEl){
@@ -3261,12 +3464,10 @@ function renderInvestmentsPage(){
       const totalBase = invItems.reduce((s,i)=>s+(i.amount||0),0);
       const yieldPct = totalBase>0?((totalYield/totalBase)*100).toFixed(2):'0,00';
       yieldEl.textContent = `+ ${fmt(totalYield)} em rendimentos (${yieldPct}%)`;
-    } else {
-      yieldEl.textContent = '';
-    }
+    } else yieldEl.textContent = '';
   }
 
-  // Summary stats from invHistory
+  // History stats (excluding delete)
   const totalDeposited = S.invHistory.filter(h=>h.type==='deposit').reduce((s,h)=>s+h.amount,0);
   const totalWithdrawn = S.invHistory.filter(h=>h.type==='withdraw').reduce((s,h)=>s+h.amount,0);
   const totalYieldHist = S.invHistory.filter(h=>h.type==='yield').reduce((s,h)=>s+h.amount,0);
@@ -3277,29 +3478,72 @@ function renderInvestmentsPage(){
   if(witEl) witEl.textContent = fmt(totalWithdrawn);
   if(yldEl) yldEl.textContent = fmt(totalYield+totalYieldHist);
 
+  // Forecast: investimentos agendados para meses futuros com deductBalance
+  const today = new Date(); today.setHours(0,0,0,0);
+  const nextMonthKey = (()=>{let m=today.getMonth()+2,y=today.getFullYear();if(m>12){m-=12;y++;}return mkey(y,m);})();
+  const forecastTxs = S.transactions.filter(t=>
+    t.type==='investment' && t.deductBalance===true &&
+    new Date(t.date+'T00:00:00') > new Date(new Date().getFullYear(), new Date().getMonth()+1, 0)
+  );
+  const forecastAmt = forecastTxs.reduce((s,t)=>s+t.amount,0);
+  const forecastRow = document.getElementById('invForecastRow');
+  const forecastAmtEl = document.getElementById('invForecastAmt');
+  if(forecastRow){
+    if(forecastAmt>0){
+      forecastRow.style.display='flex';
+      forecastRow.style.alignItems='center';
+      forecastRow.style.justifyContent='space-between';
+      if(forecastAmtEl) forecastAmtEl.textContent = fmt(forecastAmt);
+    } else {
+      forecastRow.style.display='none';
+    }
+  }
+
   const el = document.getElementById('invList');
-  if(!invItems.length && !txItems.length){
+  if(!invItems.filter(i=>i._source!=='legacy').length && !txItems.length){
     el.innerHTML='<div class="empty"><div class="ei">📈</div><p>Nenhum investimento registrado</p></div>';
     return;
   }
 
   let html = '';
 
-  // Bank investments (editable)
-  invItems.forEach(i=>{
+  // Bank investments
+  invItems.filter(i=>i._source==='bank').forEach(i=>{
     const bk = S.banks.find(b=>b.id===i.bankId);
     const typeObj = INV_TYPES.find(t=>t.id===i.invType) || INV_TYPES[INV_TYPES.length-1];
-    const lastD = i.lastDate&&i.lastDate!=='—' ? new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
     const yieldAmt = i.yieldAmt||0;
     const total = (i.amount||0) + yieldAmt;
-    const rate = i.rate||0;
     const maturity = i.maturity ? new Date(i.maturity+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : null;
     const startDate = i.startDate ? new Date(i.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : null;
-    const yieldPct = i.amount > 0 ? ((yieldAmt/i.amount)*100).toFixed(2) : '0,00';
 
-    if(i._source==='legacy') return; // skip legacy
+    // History for this investment (excluding deletes)
+    const hist = S.invHistory.filter(h=>h.invId===i.id && h.type!=='delete')
+      .sort((a,b)=>a.date.localeCompare(b.date));
 
-    html += `<div class="inv-card" style="border:1px solid ${typeObj.color}22">
+    // Build monthly progression for mini-chart preview
+    const monthlyMap = {};
+    let running = 0;
+    hist.forEach(h=>{
+      const mk = h.date.slice(0,7);
+      if(h.type==='deposit'||h.type==='update') running = Math.max(running + (h.type==='deposit'?h.amount:0), 0);
+      if(h.type==='withdraw') running = Math.max(running - h.amount, 0);
+      monthlyMap[mk] = running;
+    });
+    // Add current value
+    const curMk = new Date().toISOString().slice(0,7);
+    monthlyMap[curMk] = i.amount||0;
+    const chartPts = Object.entries(monthlyMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+    const maxV = Math.max(...chartPts.map(([,v])=>v), 1);
+    const miniChart = chartPts.map(([mk,v])=>{
+      const h = Math.max(3, Math.round((v/maxV)*28));
+      const lbl = MONTHS[parseInt(mk.split('-')[1])-1].slice(0,3);
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px">
+        <div style="width:100%;height:${h}px;background:${typeObj.color};border-radius:2px 2px 0 0;opacity:.75"></div>
+        <div style="font-size:7px;color:var(--t3);font-family:'DM Mono',monospace">${lbl}</div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="inv-card" style="border-color:${typeObj.color}22" onclick="openInvDetail('${i.bankId}','${i.id}')">
       <div class="inv-h">
         <div class="inv-ico" style="background:${typeObj.color}18;font-size:20px">${typeObj.icon}</div>
         <div class="inv-inf">
@@ -3309,33 +3553,52 @@ function renderInvestmentsPage(){
             <span class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}</span>
           </div>
         </div>
-        <div style="text-align:right">
+        <div style="text-align:right;flex-shrink:0">
           <div class="inv-amt" style="color:${typeObj.color}">${fmt(total)}</div>
-          ${yieldAmt>0?`<div style="font-size:9px;color:var(--green);font-family:'DM Mono',monospace">+${fmt(yieldAmt)} (${yieldPct}%)</div>`:''}
+          ${yieldAmt>0?`<div style="font-size:9px;color:var(--green);font-family:'DM Mono',monospace">+${fmt(yieldAmt)}</div>`:''}
         </div>
       </div>
-      <div class="inv-meta" style="margin-bottom:10px">
+      ${chartPts.length>1?`<div style="display:flex;align-items:flex-end;gap:3px;height:36px;margin-bottom:8px">${miniChart}</div>`:''}
+      <div class="inv-meta">
         <div class="inv-mi"><div class="lbl">Aplicado</div><div class="val" style="color:var(--blue)">${fmt(i.amount||0)}</div></div>
-        <div class="inv-mi"><div class="lbl">Rendimento</div><div class="val" style="color:var(--green)">${yieldAmt>0?fmt(yieldAmt):'—'}</div></div>
-        <div class="inv-mi"><div class="lbl">${maturity?'Vencimento':'Última mov.'}</div><div class="val">${maturity||lastD}</div></div>
-        ${rate>0?`<div class="inv-mi"><div class="lbl">Taxa</div><div class="val" style="color:var(--orange)">${rate}% a.a.</div></div>`:''}
+        ${yieldAmt>0?`<div class="inv-mi"><div class="lbl">Rendimento</div><div class="val" style="color:var(--green)">${fmt(yieldAmt)}</div></div>`:''}
+        ${maturity?`<div class="inv-mi"><div class="lbl">Vencimento</div><div class="val">${maturity}</div></div>`:''}
         ${startDate?`<div class="inv-mi"><div class="lbl">Início</div><div class="val">${startDate}</div></div>`:''}
+        ${i.rate>0?`<div class="inv-mi"><div class="lbl">Taxa</div><div class="val" style="color:var(--orange)">${i.rate}% a.a.</div></div>`:''}
       </div>
-      <div style="display:flex;gap:7px">
-        <button onclick="openEditInvItem('${i.bankId}','${i.id}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
-        <button onclick="openInvWithdraw('${i.bankId}','${i.id}')" style="flex:1;background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.3);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸 Sacar</button>
-        <button onclick="confirmDeleteInv('${i.bankId}','${i.id}')" style="flex:0 0 auto;background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">🗑️</button>
-      </div>
+      <div style="font-size:9px;color:var(--t3);margin-top:8px;text-align:center">👆 Toque para ver histórico detalhado</div>
     </div>`;
   });
 
-  // TX-based investments (read-only summary, no bank.investments entry)
+  // TX-based investments
   txItems.forEach(i=>{
     const bk = S.banks.find(b=>b.id===i.bankId);
     const typeObj = INV_TYPES[INV_TYPES.length-1];
     const net = i.invested - i.withdrawn;
     const lastD = i.lastDate&&i.lastDate!=='—' ? new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
-    html += `<div class="inv-card">
+
+    // monthly aports from transactions for mini chart
+    const txHist = S.transactions.filter(t=>(t.type==='investment'||t.type==='withdrawal') && t.name===i.name && !t.invId)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    const txMonthMap={};
+    txHist.forEach(t=>{
+      const mk=t.date.slice(0,7);
+      if(!txMonthMap[mk]) txMonthMap[mk]=0;
+      txMonthMap[mk]+= t.type==='investment'?t.amount:-t.amount;
+    });
+    const txChartPts=Object.entries(txMonthMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+    const txMaxV=Math.max(...txChartPts.map(([,v])=>Math.abs(v)),1);
+    const txMiniChart=txChartPts.map(([mk,v])=>{
+      const h=Math.max(3,Math.round((Math.abs(v)/txMaxV)*28));
+      const lbl=MONTHS[parseInt(mk.split('-')[1])-1].slice(0,3);
+      const col=v>=0?'var(--accent)':'var(--red)';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px">
+        <div style="width:100%;height:${h}px;background:${col};border-radius:2px 2px 0 0;opacity:.75"></div>
+        <div style="font-size:7px;color:var(--t3);font-family:'DM Mono',monospace">${lbl}</div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="inv-card" onclick="openInvDetailTx('${i.name}')">
       <div class="inv-h">
         <div class="inv-ico" style="background:rgba(144,164,174,.1);font-size:20px">${typeObj.icon}</div>
         <div class="inv-inf">
@@ -3347,7 +3610,265 @@ function renderInvestmentsPage(){
         </div>
         <div class="inv-amt">${fmt(net)}</div>
       </div>
+      ${txChartPts.length>1?`<div style="display:flex;align-items:flex-end;gap:3px;height:36px;margin-bottom:8px">${txMiniChart}</div>`:''}
       <div class="inv-meta">
+        <div class="inv-mi"><div class="lbl">Aportado</div><div class="val" style="color:var(--accent)">${fmt(i.invested)}</div></div>
+        <div class="inv-mi"><div class="lbl">Retirado</div><div class="val" style="color:var(--purple)">${fmt(i.withdrawn)}</div></div>
+        <div class="inv-mi"><div class="lbl">Última mov.</div><div class="val">${lastD}</div></div>
+      </div>
+      <div style="font-size:9px;color:var(--t3);margin-top:8px;text-align:center">👆 Toque para ver histórico</div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════
+// INVESTMENT DETAIL DRAWER (bank investments)
+// ════════════════════════════════════════════════════════
+function openInvDetail(bankId, invId){
+  const bk = S.banks.find(b=>b.id===bankId);
+  const inv = bk ? (bk.investments||[]).find(i=>i.id===invId) : null;
+  if(!inv) return;
+  const typeObj = INV_TYPES.find(t=>t.id===inv.invType) || INV_TYPES[INV_TYPES.length-1];
+
+  // History for this inv (excluding deletes)
+  const hist = S.invHistory.filter(h=>h.invId===invId && h.type!=='delete')
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  // Monthly aggregation for chart (running balance)
+  const monthlyMap={};
+  let running=0;
+  hist.forEach(h=>{
+    const mk=h.date.slice(0,7);
+    if(h.type==='deposit') running+=h.amount;
+    else if(h.type==='withdraw') running=Math.max(0,running-h.amount);
+    monthlyMap[mk]=running;
+  });
+  monthlyMap[new Date().toISOString().slice(0,7)]=inv.amount||0;
+  const chartPts=Object.entries(monthlyMap).sort((a,b)=>a[0].localeCompare(b[0]));
+  const maxV=Math.max(...chartPts.map(([,v])=>v),1);
+
+  // Forecast: scheduled investment transactions linked to this inv next month+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const forecastTxs=S.transactions.filter(t=>
+    t.type==='investment' && t.deductBalance===true && t.bankId===bankId &&
+    new Date(t.date+'T00:00:00') > today
+  );
+  const forecastTotal=forecastTxs.reduce((s,t)=>s+t.amount,0);
+
+  // Monthly breakdown from history
+  const monthBreakMap={};
+  hist.forEach(h=>{
+    const mk=h.date.slice(0,7);
+    if(!monthBreakMap[mk]) monthBreakMap[mk]={deposits:0,withdraws:0,yields:0};
+    if(h.type==='deposit') monthBreakMap[mk].deposits+=h.amount;
+    if(h.type==='withdraw') monthBreakMap[mk].withdraws+=h.amount;
+    if(h.type==='yield') monthBreakMap[mk].yields+=h.amount;
+  });
+
+  // Chart bars HTML
+  const barH = chartPts.map(([mk,v])=>{
+    const h=Math.max(4,Math.round((v/maxV)*68));
+    const lbl=MONTHS[parseInt(mk.split('-')[1])-1].slice(0,3);
+    const isLast=mk===chartPts[chartPts.length-1][0];
+    return `<div class="idd-bar-grp">
+      <div class="idd-bar" style="height:${h}px;background:${isLast?typeObj.color:'rgba(127,255,110,.35)'}"></div>
+      <div class="idd-bar-lbl">${lbl}</div>
+    </div>`;
+  }).join('');
+
+  // Monthly breakdown rows
+  const monthRows=Object.entries(monthBreakMap).sort((a,b)=>b[0].localeCompare(a[0])).map(([mk,v])=>{
+    const y=parseInt(mk.split('-')[0]);
+    const m=parseInt(mk.split('-')[1])-1;
+    const net=v.deposits-v.withdraws+v.yields;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div>
+        <div style="font-size:12px;font-weight:600">${MONTHS[m]} ${y}</div>
+        <div style="font-size:9px;color:var(--t2);margin-top:1px;display:flex;gap:8px">
+          ${v.deposits>0?`<span style="color:var(--accent)">+${fmt(v.deposits)}</span>`:''}
+          ${v.withdraws>0?`<span style="color:var(--purple)">−${fmt(v.withdraws)}</span>`:''}
+          ${v.yields>0?`<span style="color:var(--green)">📈 ${fmt(v.yields)}</span>`:''}
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}${fmt(net)}</div>
+    </div>`;
+  }).join('');
+
+  // Recent history rows (excluding delete)
+  const histRows=hist.slice().reverse().map(h=>{
+    const meta=INV_HIST_LABELS[h.type]||INV_HIST_LABELS.update;
+    const d=new Date(h.date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    const sign=(h.type==='withdraw')?'−':'+';
+    const amtColor=(h.type==='withdraw')?'var(--red)':meta.color;
+    return `<div class="idd-hist-row">
+      <div style="width:34px;height:34px;border-radius:9px;background:${meta.color}18;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${meta.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.note||h.invName}</div>
+        <div style="font-size:9px;color:var(--t2);margin-top:2px;display:flex;gap:5px;align-items:center">
+          <span style="background:${meta.color}18;color:${meta.color};border-radius:3px;padding:1px 5px;font-size:8px;font-weight:700">${meta.label}</span>
+          <span>${d}</span>
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:${amtColor};flex-shrink:0">${sign} ${fmt(h.amount)}</div>
+    </div>`;
+  }).join('');
+
+  const maturity = inv.maturity ? new Date(inv.maturity+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : null;
+
+  document.getElementById('invDetailContent').innerHTML = `
+    <!-- header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:44px;height:44px;border-radius:12px;background:${typeObj.color}18;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${typeObj.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${inv.name}</div>
+        <div style="font-size:10px;color:var(--t2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:${typeObj.color}18;color:${typeObj.color};border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700">${typeObj.label}</span>
+          <span>${bk?bk.icon+' '+bk.name:'—'}</span>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'DM Mono',monospace;font-size:22px;color:${typeObj.color};font-weight:500">${fmt((inv.amount||0)+(inv.yieldAmt||0))}</div>
+        ${(inv.yieldAmt||0)>0?`<div style="font-size:9px;color:var(--green);font-family:'DM Mono',monospace">+${fmt(inv.yieldAmt)}</div>`:''}
+      </div>
+    </div>
+
+    <!-- quick stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr${maturity||inv.rate>0?' 1fr':''}; gap:6px;margin-bottom:14px">
+      <div style="background:var(--s2);border-radius:9px;padding:9px 10px">
+        <div style="font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:3px">Aplicado</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--blue)">${fmt(inv.amount||0)}</div>
+      </div>
+      <div style="background:var(--s2);border-radius:9px;padding:9px 10px">
+        <div style="font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:3px">Rendimento</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green)">${(inv.yieldAmt||0)>0?fmt(inv.yieldAmt):'—'}</div>
+      </div>
+      ${maturity?`<div style="background:var(--s2);border-radius:9px;padding:9px 10px">
+        <div style="font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:3px">Vencimento</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--orange)">${maturity}</div>
+      </div>`:''}
+      ${inv.rate>0&&!maturity?`<div style="background:var(--s2);border-radius:9px;padding:9px 10px">
+        <div style="font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:3px">Taxa</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--orange)">${inv.rate}% a.a.</div>
+      </div>`:''}
+    </div>
+
+    ${forecastTotal>0?`<div style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:var(--blue);font-weight:600">⏳ Aportes previstos</span>
+      <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--blue)">${fmt(forecastTotal)}</span>
+    </div>`:''}
+
+    ${chartPts.length>1?`<!-- chart -->
+    <div style="font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:8px">Evolução do saldo</div>
+    <div class="idd-chart-wrap">${barH}</div>`:''}
+
+    ${monthRows?`<!-- monthly breakdown -->
+    <div style="font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin:14px 0 4px">Movimentações por mês</div>
+    ${monthRows}`:''}
+
+    ${histRows?`<!-- history -->
+    <div style="font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin:14px 0 4px">Histórico detalhado</div>
+    ${histRows}`:'<div style="color:var(--t2);font-size:12px;padding:12px 0;text-align:center">Nenhuma movimentação registrada</div>'}
+
+    <!-- actions -->
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="closeModal('invDetailDrawer');openEditInvItem('${bankId}','${invId}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:9px;padding:11px 6px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
+      <button onclick="closeModal('invDetailDrawer');openInvWithdraw('${bankId}','${invId}')" style="flex:1;background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.3);border-radius:9px;padding:11px 6px;font-size:12px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸 Sacar</button>
+      <button onclick="closeModal('invDetailDrawer');confirmDeleteInv('${bankId}','${invId}')" style="flex:0 0 auto;background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);border-radius:9px;padding:11px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">🗑️</button>
+    </div>
+  `;
+  openModal('invDetailDrawer');
+}
+
+// TX-based investment detail
+function openInvDetailTx(name){
+  const txHist = S.transactions.filter(t=>(t.type==='investment'||t.type==='withdrawal') && t.name===name && !t.invId)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  // Monthly breakdown
+  const monthBreakMap={};
+  let running=0;
+  const chartPts=[];
+  txHist.forEach(t=>{
+    const mk=t.date.slice(0,7);
+    if(!monthBreakMap[mk]) monthBreakMap[mk]={deposits:0,withdraws:0};
+    if(t.type==='investment'){ monthBreakMap[mk].deposits+=t.amount; running+=t.amount; }
+    else { monthBreakMap[mk].withdraws+=t.amount; running=Math.max(0,running-t.amount); }
+    // update or add chart point
+    const last=chartPts[chartPts.length-1];
+    if(last&&last[0]===mk) chartPts[chartPts.length-1]=[mk,running];
+    else chartPts.push([mk,running]);
+  });
+  const maxV=Math.max(...chartPts.map(([,v])=>v),1);
+  const barH=chartPts.map(([mk,v])=>{
+    const h=Math.max(4,Math.round((v/maxV)*68));
+    const lbl=MONTHS[parseInt(mk.split('-')[1])-1].slice(0,3);
+    const isLast=mk===chartPts[chartPts.length-1][0];
+    return `<div class="idd-bar-grp">
+      <div class="idd-bar" style="height:${h}px;background:${isLast?'var(--accent)':'rgba(127,255,110,.35)'}"></div>
+      <div class="idd-bar-lbl">${lbl}</div>
+    </div>`;
+  }).join('');
+
+  const monthRows=Object.entries(monthBreakMap).sort((a,b)=>b[0].localeCompare(a[0])).map(([mk,v])=>{
+    const y=parseInt(mk.split('-')[0]);
+    const m=parseInt(mk.split('-')[1])-1;
+    const net=v.deposits-v.withdraws;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div>
+        <div style="font-size:12px;font-weight:600">${MONTHS[m]} ${y}</div>
+        <div style="font-size:9px;color:var(--t2);margin-top:1px;display:flex;gap:8px">
+          ${v.deposits>0?`<span style="color:var(--accent)">+${fmt(v.deposits)}</span>`:''}
+          ${v.withdraws>0?`<span style="color:var(--purple)">−${fmt(v.withdraws)}</span>`:''}
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}${fmt(net)}</div>
+    </div>`;
+  }).join('');
+
+  const histRows=txHist.slice().reverse().map(t=>{
+    const isMinus=t.type==='withdrawal';
+    const d=new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    const col=isMinus?'var(--purple)':'var(--accent)';
+    const icon=isMinus?'💸':'📥';
+    const lbl=isMinus?'Saque':'Aporte';
+    return `<div class="idd-hist-row">
+      <div style="width:34px;height:34px;border-radius:9px;background:${col}18;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500">${t.name}</div>
+        <div style="font-size:9px;color:var(--t2);margin-top:2px;display:flex;gap:5px;align-items:center">
+          <span style="background:${col}18;color:${col};border-radius:3px;padding:1px 5px;font-size:8px;font-weight:700">${lbl}</span>
+          <span>${d}</span>
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:${col};flex-shrink:0">${isMinus?'−':'+'} ${fmt(t.amount)}</div>
+    </div>`;
+  }).join('');
+
+  const total=txHist.reduce((s,t)=>s+(t.type==='investment'?t.amount:-t.amount),0);
+
+  document.getElementById('invDetailContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(144,164,174,.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💰</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+        <div style="font-size:9px;padding:1px 7px;border-radius:10px;background:rgba(144,164,174,.1);color:var(--t2);display:inline-block;margin-top:4px">Via Lançamento</div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--accent);font-weight:500;flex-shrink:0">${fmt(total)}</div>
+    </div>
+
+    ${chartPts.length>1?`<div style="font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin-bottom:8px">Evolução do saldo</div>
+    <div class="idd-chart-wrap">${barH}</div>`:''}
+
+    ${monthRows?`<div style="font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin:14px 0 4px">Movimentações por mês</div>
+    ${monthRows}`:''}
+
+    ${histRows?`<div style="font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t2);margin:14px 0 4px">Histórico detalhado</div>
+    ${histRows}`:'<div style="color:var(--t2);font-size:12px;padding:12px 0;text-align:center">Nenhuma movimentação</div>'}
+  `;
+  openModal('invDetailDrawer');
+}
         <div class="inv-mi"><div class="lbl">Aportado</div><div class="val" style="color:var(--green)">${fmt(i.invested)}</div></div>
         <div class="inv-mi"><div class="lbl">Retirado</div><div class="val" style="color:var(--purple)">${fmt(i.withdrawn)}</div></div>
         <div class="inv-mi"><div class="lbl">Última mov.</div><div class="val">${lastD}</div></div>
@@ -3634,6 +4155,8 @@ load();
 renderBankEmojiGrid();
 renderHome();
 document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
+// Firebase auth (não bloqueia o app — funciona offline antes mesmo de autenticar)
+initAuth();
 </script>
 </body>
 </html>
