@@ -1108,21 +1108,30 @@ function getCardPayments(bkId, cardId){
   );
 }
 
-// Verifica se uma fatura de cartão está FECHADA (hoje > dia de fechamento)
-// Fatura FECHADA = gasto real que desconta do saldo
-// Fatura ABERTA  = previsão de gasto no próximo mês (não desconta do saldo atual)
+// Verifica se uma fatura de cartão está FECHADA
+// A fatura fecha quando hoje >= closeDay DO MÊS DE FECHAMENTO.
+// Ex: fechamento dia 5 → a fatura fecha no dia 5 do próximo mês (não dia 5 do mês atual).
+// Ciclo: do dia 6 de um mês até dia 5 do mês seguinte → fatura do mês seguinte.
+// Fatura FECHADA = já passou o dia de fechamento deste ciclo → gasto real que desconta do saldo.
+// Fatura ABERTA  = ainda não chegou o dia de fechamento → previsão futura.
 function isCardInvoiceClosed(closeDay){
+  const cd = closeDay||15;
   const now = new Date();
-  return now.getDate() > (closeDay||15);
+  const today = now.getDate();
+  // Se o fechamento é no dia cd: a fatura ABRE no dia cd+1 do mês anterior e FECHA no dia cd do mês atual.
+  // Enquanto today < cd  → ainda dentro do ciclo aberto → ABERTA
+  // Quando today >= cd   → o fechamento já ocorreu neste mês → FECHADA
+  return today >= cd;
 }
 
 // Retorna o mês-chave da fatura aberta atual (para exibição como previsão)
-// Fatura aberta → próximo mês (ainda não venceu, é previsão futura)
+// Fatura aberta  → próximo mês (ainda não fechou, é previsão futura)
 // Fatura fechada → mês corrente (já é débito real)
+// Consistente com isCardInvoiceClosed: fecha quando today >= closeDay
 function ccInvoiceMonthKey(bk){
   const now = new Date();
   const closeDay = bk.ccCloseDay||15;
-  if(now.getDate() <= closeDay){
+  if(now.getDate() < closeDay){
     // Fatura ainda aberta → previsão para o próximo mês
     let m = now.getMonth()+2; let y = now.getFullYear();
     if(m>12){m-=12;y++;}
