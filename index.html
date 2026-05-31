@@ -2541,9 +2541,17 @@ function renderHome(){
   const expenseCard = allTxs.filter(t=>t.type==='expense' && t.payMethod==='card').reduce((s,t)=>s+t.amount,0);
   // Total de despesas para exibição nos cards de métrica
   const expense = expenseCash + expenseCard;
-  // Investimentos via lançamento: só desconta os confirmados E com deductBalance=true
-  const investedConfirmed = confirmedInv.filter(t=>t.deductBalance===true).reduce((s,t)=>s+t.amount,0);
-  const investedForecast  = forecastInv.reduce((s,t)=>s+t.amount,0);
+
+  // Investimentos com deductBalance=true: desconta do saldo INDEPENDENTE da data,
+  // desde que sejam do mês visualizado. Futuros aparecem como previsão mas JÁ descontam.
+  const allDeductInvMonth = allTxs.filter(t=>t.type==='investment' && t.deductBalance===true);
+  const investedConfirmed = allDeductInvMonth.filter(t=>!isF(t)).reduce((s,t)=>s+t.amount,0);
+  const investedForecast  = allDeductInvMonth.filter(t=>isF(t)).reduce((s,t)=>s+t.amount,0);
+  const investedDeductTotal = investedConfirmed + investedForecast; // tudo que desconta do saldo no mês
+
+  // Para o card de métricas: todos os lançamentos de investimento do mês atual
+  const allInvThisMonth = allTxs.filter(t=>t.type==='investment');
+  const forecastInvAmt = forecastInv.reduce((s,t)=>s+t.amount,0);
 
   // Faturas CC — só desconta no mês em que a fatura fecha/vence
   // Para o mês visualizado: usa computeCCInvoiceForViewMonth
@@ -2556,11 +2564,12 @@ function renderHome(){
   // Total apartado em investimentos (bancos) — apenas informativo, não desconta do disponível
   const totalInvested = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
 
-  // Saldo disponível = entradas - gastos em dinheiro - fatura do mês visualizado - investimentos lançados com "descontar do saldo"
-  const balance = income - expenseCash - ccViewTotal - investedConfirmed;
+  // Saldo disponível = entradas - gastos em dinheiro - fatura do mês - TODOS investimentos com deductBalance do mês
+  // (futuros dentro do mês também descontam, aparecem só como previsão no badge)
+  const balance = income - expenseCash - ccViewTotal - investedDeductTotal;
 
-  // Indicador se o saldo inclui previsões
-  const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0;
+  // Indicador se o saldo inclui previsões (inclui investimentos futuros com deductBalance)
+  const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0 || investedForecast > 0;
 
   // ── Hero balance ──
   const hAmt = document.getElementById('hAmt');
@@ -2585,7 +2594,7 @@ function renderHome(){
   }
 
   // ── Budget bar ──
-  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + ccViewTotal) / income * 100)) : 0;
+  const pct = income > 0 ? Math.min(100, Math.round((expense + investedDeductTotal + ccViewTotal) / income * 100)) : 0;
   const pctEl = document.getElementById('progPct');
   pctEl.textContent = pct + '%';
   pctEl.style.color = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
@@ -2610,14 +2619,16 @@ function renderHome(){
     document.getElementById('hExpSub').textContent = confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
   }
 
-  // Investimentos: mostra total geral + indicação de quanto descontou do saldo
+  // Investimentos: mostra total do mês + badge de previsão se houver futuros com deductBalance
   const allInvConfirmed = confirmedInv.reduce((s,t)=>s+t.amount,0);
   document.getElementById('hInv').textContent = fmt(allInvConfirmed + totalInvested);
-  document.getElementById('hInvSub').textContent = investedForecast > 0
-    ? `⏳ ${fmt(investedForecast)} agendado`
-    : investedConfirmed > 0
-      ? `💸 ${fmt(investedConfirmed)} descontado`
-      : ((allInvConfirmed + totalInvested) > 0 ? '🔒 Apartado' : 'Nenhum investimento');
+  if(investedForecast > 0){
+    document.getElementById('hInvSub').textContent = `⏳ ${fmt(investedForecast)} agendado (já descontado)`;
+  } else if(investedDeductTotal > 0){
+    document.getElementById('hInvSub').textContent = `💸 ${fmt(investedDeductTotal)} descontado`;
+  } else {
+    document.getElementById('hInvSub').textContent = ((allInvConfirmed + totalInvested) > 0 ? '🔒 Apartado' : 'Nenhum investimento');
+  }
 
   document.getElementById('hCC').textContent = fmt(ccViewTotal > 0 ? ccViewTotal : ccTotal);
   if(ccViewTotal > 0){
