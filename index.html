@@ -579,12 +579,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 <div id="page-investments" class="page">
   <div class="stitle" style="padding-top:16px">
     <h2>Investimentos</h2>
-    <button class="btn-sm" onclick="openInvTx()">+ Novo</button>
+    <button class="btn-sm" onclick="openInvFromPage()">+ Novo</button>
   </div>
   <div class="invpage">
     <div class="inv-summary">
       <div class="inv-total-lbl">Total Investido</div>
       <div class="inv-total" id="invTotal">R$ 0,00</div>
+      <div id="invSummaryYield" style="font-size:11px;color:var(--green);margin-top:4px;font-family:'DM Mono',monospace"></div>
     </div>
     <div id="invList"><div class="empty"><div class="ei">📈</div><p>Nenhum investimento</p></div></div>
   </div>
@@ -864,10 +865,34 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       <input type="text" id="invItemName" placeholder="Ex: CDB Nubank 110% CDI…">
     </div>
 
-    <!-- VALOR -->
+    <!-- VALOR APLICADO -->
     <div class="fg">
       <label>Valor Aplicado (R$)</label>
       <input type="number" id="invItemAmt" placeholder="0,00" inputmode="decimal" step="0.01">
+    </div>
+
+    <!-- RENDIMENTO -->
+    <div class="fg">
+      <label>Rendimento Acumulado (R$) <span style="color:var(--t3);font-size:9px">opcional</span></label>
+      <input type="number" id="invItemYield" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
+    </div>
+
+    <!-- TAXA DE RENDIMENTO -->
+    <div class="frow">
+      <div class="fg">
+        <label>Taxa (% a.a.) <span style="color:var(--t3);font-size:9px">opcional</span></label>
+        <input type="number" id="invItemRate" placeholder="Ex: 12,5" inputmode="decimal" step="0.01" min="0">
+      </div>
+      <div class="fg">
+        <label>Data Inicial <span style="color:var(--t3);font-size:9px">opcional</span></label>
+        <input type="date" id="invItemDate">
+      </div>
+    </div>
+
+    <!-- VENCIMENTO -->
+    <div class="fg">
+      <label>Vencimento <span style="color:var(--t3);font-size:9px">opcional</span></label>
+      <input type="date" id="invItemMaturity">
     </div>
 
     <button class="btn-p" onclick="saveInvItem()">Salvar Investimento</button>
@@ -2005,6 +2030,10 @@ function openAddInvItem(bankId){
   document.getElementById('invItemModalTitle').textContent = 'Novo Investimento';
   document.getElementById('invItemName').value = '';
   document.getElementById('invItemAmt').value = '';
+  document.getElementById('invItemYield').value = '';
+  document.getElementById('invItemRate').value = '';
+  document.getElementById('invItemDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('invItemMaturity').value = '';
   document.getElementById('btnDelInvItem').style.display = 'none';
   openModal('invItemModal');
   renderInvTypeGrid();
@@ -2020,6 +2049,10 @@ function openEditInvItem(bankId, invId){
   document.getElementById('invItemModalTitle').textContent = 'Editar Investimento';
   document.getElementById('invItemName').value = inv.name;
   document.getElementById('invItemAmt').value = inv.amount||'';
+  document.getElementById('invItemYield').value = inv.yieldAmt||'';
+  document.getElementById('invItemRate').value = inv.rate||'';
+  document.getElementById('invItemDate').value = inv.startDate||new Date().toISOString().slice(0,10);
+  document.getElementById('invItemMaturity').value = inv.maturity||'';
   document.getElementById('btnDelInvItem').style.display = 'block';
   openModal('invItemModal');
   renderInvTypeGrid();
@@ -2029,15 +2062,21 @@ function saveInvItem(){
   const name = document.getElementById('invItemName').value.trim();
   const amount = parseFloat(document.getElementById('invItemAmt').value)||0;
   if(!name){showToast('⚠️ Informe o nome');return;}
+  if(amount<=0){showToast('⚠️ Informe o valor aplicado');return;}
   const bkIdx = S.banks.findIndex(b=>b.id===editingInvItemBankId);
   if(bkIdx<0){showToast('⚠️ Banco não encontrado');return;}
   if(!S.banks[bkIdx].investments) S.banks[bkIdx].investments=[];
   const typeObj = INV_TYPES.find(t=>t.id===selectedInvType) || INV_TYPES[0];
+  const yieldAmt = parseFloat(document.getElementById('invItemYield').value)||0;
+  const rate = parseFloat(document.getElementById('invItemRate').value)||0;
+  const startDate = document.getElementById('invItemDate').value||new Date().toISOString().slice(0,10);
+  const maturity = document.getElementById('invItemMaturity').value||'';
   if(editingInvItemId){
     const ii = S.banks[bkIdx].investments.findIndex(i=>i.id===editingInvItemId);
     if(ii>-1) S.banks[bkIdx].investments[ii]={
       ...S.banks[bkIdx].investments[ii],
       name, amount, invType: typeObj.id,
+      yieldAmt, rate, startDate, maturity,
       lastDate: new Date().toISOString().slice(0,10)
     };
     showToast('✅ Investimento atualizado');
@@ -2045,6 +2084,7 @@ function saveInvItem(){
     S.banks[bkIdx].investments.push({
       id:uid(), name, amount,
       invType: typeObj.id,
+      yieldAmt, rate, startDate, maturity,
       lastDate: new Date().toISOString().slice(0,10)
     });
     showToast('✅ Investimento adicionado');
@@ -2061,6 +2101,7 @@ function deleteInvItem(){
   S.banks[bkIdx].investments = (S.banks[bkIdx].investments||[]).filter(i=>i.id!==editingInvItemId);
   save(); closeModal('invItemModal'); renderHome();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
   showToast('🗑️ Investimento removido');
 }
 
@@ -2186,6 +2227,22 @@ function openInvTx(){
   setTimeout(()=>setTxType('investment'),50);
 }
 
+function openInvFromPage(){
+  if(S.banks.length===0){showToast('⚠️ Adicione um banco primeiro');return;}
+  if(S.banks.length===1){openAddInvItem(S.banks[0].id);return;}
+  const d=document.createElement('div');
+  d.id='choiceModal';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:flex-end';
+  const opts=S.banks.map(b=>`<button onclick="document.getElementById('choiceModal').remove();openAddInvItem('${b.id}')" style="width:100%;display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;margin-bottom:7px"><span style="font-size:20px">${b.icon}</span>${b.name}</button>`).join('');
+  d.innerHTML=`<div style="background:#13161d;border-radius:20px 20px 0 0;border:1px solid #252b3a;border-bottom:none;width:100%;padding:20px 18px calc(20px + env(safe-area-inset-bottom))">
+    <div style="width:34px;height:3px;background:#2f374a;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:18px;font-weight:700;margin-bottom:16px">Em qual banco?</div>
+    ${opts}
+    <button onclick="document.getElementById('choiceModal').remove()" style="width:100%;background:none;border:none;color:#7a8599;padding:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px">Cancelar</button>
+  </div>`;
+  document.body.appendChild(d);
+}
+
 // ════════════════════════════════════════════════════════
 // RENDER: HOME
 // ════════════════════════════════════════════════════════
@@ -2216,16 +2273,17 @@ function renderHome(){
   const investedForecast  = forecastInv.reduce((s,t)=>s+t.amount,0);
 
   // Faturas CC (calculadas a partir dos gastos de cartão registrados)
+  // TODA fatura (aberta ou fechada) desconta do saldo disponível
   const ccClosedTotal = S.banks.reduce((s,b)=>s+computeClosedCCInvoice(b.id),0);
   const ccOpenTotal   = S.banks.reduce((s,b)=>s+computeOpenCCInvoice(b.id),0);
   const ccTotal = ccClosedTotal + ccOpenTotal;
 
-  // Total apartado em investimentos (bancos)
+  // Total apartado em investimentos (bancos) — sempre desconta do disponível
   const totalInvested = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
 
-  // Saldo disponível = entradas - gastos em dinheiro - fatura CC fechada - investimentos confirmados
-  // Gastos de cartão saem via fatura (ccClosedTotal), não duas vezes
-  const balance = income - expenseCash - ccClosedTotal - investedConfirmed;
+  // Saldo disponível = entradas - gastos em dinheiro - TODA fatura CC (aberta+fechada) - investimentos confirmados - investimentos apartados em banco
+  // Gastos de cartão saem via fatura (ccTotal), não duas vezes
+  const balance = income - expenseCash - ccTotal - investedConfirmed - totalInvested;
 
   // Indicador se o saldo inclui previsões
   const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0;
@@ -2253,7 +2311,7 @@ function renderHome(){
   }
 
   // ── Budget bar ──
-  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + ccClosedTotal) / income * 100)) : 0;
+  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + totalInvested + ccTotal) / income * 100)) : 0;
   const pctEl = document.getElementById('progPct');
   pctEl.textContent = pct + '%';
   pctEl.style.color = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
@@ -2278,11 +2336,11 @@ function renderHome(){
     document.getElementById('hExpSub').textContent = confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
   }
 
-  // Investimentos: mostra total apartado (confirmados) + alerta de futuros
-  document.getElementById('hInv').textContent = fmt(totalInvested);
+  // Investimentos: mostra total apartado (confirmados via tx + banco) + alerta de futuros
+  document.getElementById('hInv').textContent = fmt(totalInvested + investedConfirmed);
   document.getElementById('hInvSub').textContent = investedForecast > 0
     ? `⏳ ${fmt(investedForecast)} agendado`
-    : (totalInvested > 0 ? 'Total apartado' : 'Nenhum investimento');
+    : ((totalInvested + investedConfirmed) > 0 ? '🔒 Apartado — descontado' : 'Nenhum investimento');
 
   document.getElementById('hCC').textContent = fmt(ccTotal);
   if(ccClosedTotal > 0 && ccOpenTotal > 0){
@@ -2290,7 +2348,7 @@ function renderHome(){
   } else if(ccClosedTotal > 0){
     document.getElementById('hCCSub').textContent = `🔒 Fatura fechada — descontada`;
   } else if(ccOpenTotal > 0){
-    document.getElementById('hCCSub').textContent = `⏳ ${fmt(ccOpenTotal)} — fatura aberta`;
+    document.getElementById('hCCSub').textContent = `⏳ ${fmt(ccOpenTotal)} — fatura aberta (descontada)`;
   } else {
     const ccBanks = S.banks.filter(b=>bankHasCC(b));
     document.getElementById('hCCSub').textContent = ccBanks.length > 0
@@ -2863,46 +2921,115 @@ function renderBanksPage(){
 // RENDER: INVESTMENTS
 // ════════════════════════════════════════════════════════
 function renderInvestmentsPage(){
-  const txs=S.transactions.filter(t=>t.type==='investment'||t.type==='withdrawal');
-  const map={};
-  txs.forEach(t=>{
-    if(!map[t.name]) map[t.name]={name:t.name,invested:0,withdrawn:0,bankId:t.bankId,lastDate:t.date};
-    if(t.type==='investment') map[t.name].invested+=t.amount;
-    else map[t.name].withdrawn+=t.amount;
-    if(t.date>map[t.name].lastDate) map[t.name].lastDate=t.date;
-  });
-  // Include investments from banks.investments array
+  // Map all bank-level investments
+  const invItems = [];
   S.banks.forEach(b=>{
     (b.investments||[]).forEach(inv=>{
-      const key='_inv_'+b.id+'_'+inv.id;
-      if(!map[key]) map[key]={name:inv.name,invested:inv.amount||0,withdrawn:0,bankId:b.id,lastDate:inv.lastDate||'—',invType:inv.invType||'outro'};
+      invItems.push({...inv, bankId: b.id, _source:'bank'});
     });
     // legacy investment field
     if((b.investment||0)>0){
-      const key='_bank_'+b.id;
-      if(!map[key]) map[key]={name:b.name+' (patrimônio)',invested:b.investment,withdrawn:0,bankId:b.id,lastDate:'—',invType:'outro'};
+      invItems.push({
+        id:'_leg_'+b.id, name:b.name+' (patrimônio)',
+        amount:b.investment, bankId:b.id, invType:'outro',
+        yieldAmt:0, rate:0, lastDate:'—', _source:'legacy'
+      });
     }
   });
-  const items=Object.values(map);
-  const totalTx=items.reduce((s,i)=>s+(i.invested-i.withdrawn),0);
-  document.getElementById('invTotal').textContent=fmt(totalTx);
-  const el=document.getElementById('invList');
-  if(!items.length){
+
+  // Also aggregate tx-based investments (type=investment/withdrawal) not linked to bank.investments
+  const txMap={};
+  S.transactions.filter(t=>t.type==='investment'||t.type==='withdrawal').forEach(t=>{
+    if(!txMap[t.name]) txMap[t.name]={name:t.name,invested:0,withdrawn:0,bankId:t.bankId,lastDate:t.date,invType:'outro',_source:'tx'};
+    if(t.type==='investment') txMap[t.name].invested+=t.amount;
+    else txMap[t.name].withdrawn+=t.amount;
+    if(t.date>txMap[t.name].lastDate) txMap[t.name].lastDate=t.date;
+  });
+  const txItems = Object.values(txMap);
+
+  const totalBankInv = invItems.reduce((s,i)=>s+(i.amount||0),0);
+  const totalTxInv = txItems.reduce((s,i)=>s+(i.invested-i.withdrawn),0);
+  const grandTotal = totalBankInv + totalTxInv;
+
+  document.getElementById('invTotal').textContent = fmt(grandTotal);
+
+  // Show yield summary
+  const totalYield = invItems.reduce((s,i)=>s+(i.yieldAmt||0),0);
+  const yieldEl = document.getElementById('invSummaryYield');
+  if(yieldEl){
+    if(totalYield>0){
+      const totalBase = invItems.reduce((s,i)=>s+(i.amount||0),0);
+      const yieldPct = totalBase>0?((totalYield/totalBase)*100).toFixed(2):'0,00';
+      yieldEl.textContent = `+ ${fmt(totalYield)} em rendimentos (${yieldPct}%)`;
+    } else {
+      yieldEl.textContent = '';
+    }
+  }
+
+  const el = document.getElementById('invList');
+  if(!invItems.length && !txItems.length){
     el.innerHTML='<div class="empty"><div class="ei">📈</div><p>Nenhum investimento registrado</p></div>';
     return;
   }
-  el.innerHTML=items.map(i=>{
-    const bk=S.banks.find(b=>b.id===i.bankId);
-    const net=i.invested-i.withdrawn;
-    const lastD=i.lastDate!=='—'?new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
+
+  let html = '';
+
+  // Bank investments (editable)
+  invItems.forEach(i=>{
+    const bk = S.banks.find(b=>b.id===i.bankId);
     const typeObj = INV_TYPES.find(t=>t.id===i.invType) || INV_TYPES[INV_TYPES.length-1];
-    return `<div class="inv-card">
+    const lastD = i.lastDate&&i.lastDate!=='—' ? new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
+    const yieldAmt = i.yieldAmt||0;
+    const total = (i.amount||0) + yieldAmt;
+    const rate = i.rate||0;
+    const maturity = i.maturity ? new Date(i.maturity+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : null;
+    const startDate = i.startDate ? new Date(i.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : null;
+    const yieldPct = i.amount > 0 ? ((yieldAmt/i.amount)*100).toFixed(2) : '0,00';
+
+    if(i._source==='legacy') return; // skip legacy
+
+    html += `<div class="inv-card" style="border:1px solid ${typeObj.color}22">
       <div class="inv-h">
         <div class="inv-ico" style="background:${typeObj.color}18;font-size:20px">${typeObj.icon}</div>
         <div class="inv-inf">
           <div class="inv-name">${i.name}</div>
-          <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+          <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
             <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:${typeObj.color}18;color:${typeObj.color}">${typeObj.label}</span>
+            <span class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="inv-amt" style="color:${typeObj.color}">${fmt(total)}</div>
+          ${yieldAmt>0?`<div style="font-size:9px;color:var(--green);font-family:'DM Mono',monospace">+${fmt(yieldAmt)} (${yieldPct}%)</div>`:''}
+        </div>
+      </div>
+      <div class="inv-meta" style="margin-bottom:10px">
+        <div class="inv-mi"><div class="lbl">Aplicado</div><div class="val" style="color:var(--blue)">${fmt(i.amount||0)}</div></div>
+        <div class="inv-mi"><div class="lbl">Rendimento</div><div class="val" style="color:var(--green)">${yieldAmt>0?fmt(yieldAmt):'—'}</div></div>
+        <div class="inv-mi"><div class="lbl">${maturity?'Vencimento':'Última mov.'}</div><div class="val">${maturity||lastD}</div></div>
+        ${rate>0?`<div class="inv-mi"><div class="lbl">Taxa</div><div class="val" style="color:var(--orange)">${rate}% a.a.</div></div>`:''}
+        ${startDate?`<div class="inv-mi"><div class="lbl">Início</div><div class="val">${startDate}</div></div>`:''}
+      </div>
+      <div style="display:flex;gap:7px">
+        <button onclick="openEditInvItem('${i.bankId}','${i.id}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
+        <button onclick="confirmDeleteInv('${i.bankId}','${i.id}')" style="flex:0 0 auto;background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">🗑️</button>
+      </div>
+    </div>`;
+  });
+
+  // TX-based investments (read-only summary, no bank.investments entry)
+  txItems.forEach(i=>{
+    const bk = S.banks.find(b=>b.id===i.bankId);
+    const typeObj = INV_TYPES[INV_TYPES.length-1];
+    const net = i.invested - i.withdrawn;
+    const lastD = i.lastDate&&i.lastDate!=='—' ? new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
+    html += `<div class="inv-card">
+      <div class="inv-h">
+        <div class="inv-ico" style="background:rgba(144,164,174,.1);font-size:20px">${typeObj.icon}</div>
+        <div class="inv-inf">
+          <div class="inv-name">${i.name}</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+            <span style="font-size:9px;padding:1px 6px;border-radius:10px;background:rgba(144,164,174,.1);color:var(--t2)">Via Lançamento</span>
             <span class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}</span>
           </div>
         </div>
@@ -2914,7 +3041,37 @@ function renderInvestmentsPage(){
         <div class="inv-mi"><div class="lbl">Última mov.</div><div class="val">${lastD}</div></div>
       </div>
     </div>`;
-  }).join('');
+  });
+
+  el.innerHTML = html;
+}
+
+function confirmDeleteInv(bankId, invId){
+  const bk = S.banks.find(b=>b.id===bankId);
+  const inv = bk ? (bk.investments||[]).find(i=>i.id===invId) : null;
+  if(!inv) return;
+  const d = document.createElement('div');
+  d.id = 'choiceModal';
+  d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:flex-end';
+  d.innerHTML = `<div style="background:#13161d;border-radius:20px 20px 0 0;border:1px solid #252b3a;border-bottom:none;width:100%;padding:20px 18px calc(20px + env(safe-area-inset-bottom))">
+    <div style="width:34px;height:3px;background:#2f374a;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:18px;font-weight:700;margin-bottom:6px">Excluir Investimento</div>
+    <div style="font-size:12px;color:#7a8599;margin-bottom:18px">${inv.name} — ${fmt(inv.amount||0)}</div>
+    <button onclick="doDeleteInv('${bankId}','${invId}')" style="width:100%;background:transparent;color:#ff4f4f;border:1.5px solid #ff4f4f;border-radius:10px;padding:13px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">🗑️ Confirmar exclusão</button>
+    <button onclick="document.getElementById('choiceModal').remove()" style="width:100%;background:none;border:none;color:#7a8599;padding:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px">Cancelar</button>
+  </div>`;
+  document.body.appendChild(d);
+}
+
+function doDeleteInv(bankId, invId){
+  document.getElementById('choiceModal')?.remove();
+  const bkIdx = S.banks.findIndex(b=>b.id===bankId);
+  if(bkIdx<0) return;
+  S.banks[bkIdx].investments = (S.banks[bkIdx].investments||[]).filter(i=>i.id!==invId);
+  save(); renderHome();
+  if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
+  if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  showToast('🗑️ Investimento removido');
 }
 
 // ════════════════════════════════════════════════════════
