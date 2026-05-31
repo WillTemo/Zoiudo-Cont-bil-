@@ -422,7 +422,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <div class="hero-bal">
       <div class="hero-eyebrow">
         <span class="hero-dot"></span>
-        <span class="hero-lbl">Saldo do mês</span>
+        <span class="hero-lbl">Dinheiro disponível</span>
       </div>
       <div class="hero-amt" id="hAmt">R$ 0,00</div>
       <div class="hero-sub">
@@ -449,7 +449,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
         <div class="hg-sub" id="hExpSub">—</div>
       </div>
       <div class="hg-cell">
-        <div class="hg-lbl"><span class="hg-dot" style="background:var(--accent)"></span>Investido</div>
+        <div class="hg-lbl"><span class="hg-dot" style="background:var(--accent)"></span>Apartado 🔒</div>
         <div class="hg-val v-inv" id="hInv">R$ 0,00</div>
         <div class="hg-sub" id="hInvSub">—</div>
       </div>
@@ -830,14 +830,25 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
   <div class="modal">
     <div class="mhandle"></div>
     <h3 id="invItemModalTitle">Novo Investimento</h3>
+
+    <!-- TIPO DE INVESTIMENTO -->
+    <div class="fg">
+      <label>Tipo de Investimento</label>
+      <div id="invTypeGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:2px"></div>
+    </div>
+
+    <!-- NOME -->
     <div class="fg">
       <label>Nome / Descrição</label>
-      <input type="text" id="invItemName" placeholder="Ex: Tesouro Direto, CDB Banco X…">
+      <input type="text" id="invItemName" placeholder="Ex: CDB Nubank 110% CDI…">
     </div>
+
+    <!-- VALOR -->
     <div class="fg">
       <label>Valor Aplicado (R$)</label>
       <input type="number" id="invItemAmt" placeholder="0,00" inputmode="decimal" step="0.01">
     </div>
+
     <button class="btn-p" onclick="saveInvItem()">Salvar Investimento</button>
     <button class="btn-d" id="btnDelInvItem" style="display:none" onclick="deleteInvItem()">Excluir Investimento</button>
     <button class="btn-g" onclick="closeModal('invItemModal')">Cancelar</button>
@@ -922,6 +933,23 @@ const CAT_COLORS = {
   '🎁 Presente':'#f48fb1','↔️ Transferência':'#4fc3f7','📈 Investimento':'#b0bec5',
   '💸 Retirada':'#ce93d8','💰 Outros':'#90a4ae'
 };
+
+// Tipos de investimento com ícone, cor e descrição curta
+const INV_TYPES = [
+  { id:'cdb',       label:'CDB',             icon:'🏦', color:'#4fc3f7', desc:'Renda Fixa'      },
+  { id:'tesouro',   label:'Tesouro Direto',  icon:'🏛️', color:'#7fff6e', desc:'Renda Fixa Gov.' },
+  { id:'lci_lca',   label:'LCI / LCA',       icon:'🌿', color:'#69f0ae', desc:'Renda Fixa Isen.'},
+  { id:'fundos',    label:'Fundos',          icon:'📦', color:'#ffb347', desc:'Diversificado'   },
+  { id:'acoes',     label:'Ações',           icon:'📊', color:'#ff7b54', desc:'Renda Variável'  },
+  { id:'fiis',      label:'FIIs',            icon:'🏢', color:'#c8f550', desc:'Fundos Imob.'    },
+  { id:'cripto',    label:'Cripto',          icon:'₿',  color:'#ffd54f', desc:'Criptomoedas'    },
+  { id:'poupanca',  label:'Poupança',        icon:'🐷', color:'#f48fb1', desc:'Poupança'        },
+  { id:'previdencia',label:'Previdência',    icon:'🔐', color:'#b57bee', desc:'PGBL / VGBL'     },
+  { id:'outro',     label:'Outro',           icon:'💰', color:'#90a4ae', desc:'Outros'          },
+];
+
+// Estado do tipo selecionado no modal de investimento
+let selectedInvType = 'cdb';
 const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸',cc_payment:'💳'};
 
 // ════════════════════════════════════════════════════════
@@ -978,10 +1006,19 @@ function mkey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function curKey(){ return mkey(S.currentYear, S.currentMonth+1); }
 function getMonthTxs(){ return S.transactions.filter(t=>t.month===curKey()); }
 
-// For a bank: net worth = balance + investments - CC invoices
+// Patrimônio LÍQUIDO = saldo + investimentos - faturas FECHADAS
+// O saldo DISPONÍVEL (dinheiro) = apenas saldo em conta, SEM investimentos
+// Investimentos são uma fatia separada — "apartada" do dinheiro do dia a dia
 function bankNetWorth(bk){
   const invTotal = (bk.investments||[]).reduce((s,i)=>s+(i.amount||0),0) + (bk.investment||0);
-  return (bk.balance||0) + invTotal;
+  const closedInvoice = computeClosedCCInvoice(bk.id);
+  return (bk.balance||0) + invTotal - closedInvoice;
+}
+
+// Saldo DISPONÍVEL do banco: apenas conta corrente (sem investimentos)
+function bankLiquidBalance(bk){
+  const closedInvoice = computeClosedCCInvoice(bk.id);
+  return (bk.balance||0) - closedInvoice;
 }
 
 function bankInvestmentTotal(bk){
@@ -1071,22 +1108,77 @@ function getCardPayments(bkId, cardId){
   );
 }
 
-// Which month will a CC invoice be due?
-// Fechamento e vencimento são do MESMO mês.
-// Se hoje <= dia de fechamento → fatura ainda aberta, vence este mês
-// Se hoje > dia de fechamento → fatura fechou, próximo ciclo vence no próximo mês
+// Verifica se uma fatura de cartão está FECHADA (hoje > dia de fechamento)
+// Fatura FECHADA = gasto real que desconta do saldo
+// Fatura ABERTA  = previsão de gasto no próximo mês (não desconta do saldo atual)
+function isCardInvoiceClosed(closeDay){
+  const now = new Date();
+  return now.getDate() > (closeDay||15);
+}
+
+// Retorna o mês-chave da fatura aberta atual (para exibição como previsão)
+// Fatura aberta → próximo mês (ainda não venceu, é previsão futura)
+// Fatura fechada → mês corrente (já é débito real)
 function ccInvoiceMonthKey(bk){
   const now = new Date();
   const closeDay = bk.ccCloseDay||15;
   if(now.getDate() <= closeDay){
-    // Ainda no ciclo atual → vencimento é este mês
-    return mkey(now.getFullYear(), now.getMonth()+1);
-  } else {
-    // Passou do fechamento → próximo ciclo, vence no mês seguinte
+    // Fatura ainda aberta → previsão para o próximo mês
     let m = now.getMonth()+2; let y = now.getFullYear();
     if(m>12){m-=12;y++;}
     return mkey(y,m);
+  } else {
+    // Fatura fechada → gasto real este mês
+    return mkey(now.getFullYear(), now.getMonth()+1);
   }
+}
+
+// Computa o total da fatura FECHADA de um cartão (valor que já descontou do saldo)
+function computeClosedCardInvoice(bkId, cardId){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  const card = cards.find(c=>c.id===cardId);
+  const closeDay = card ? (card.closeDay||15) : (bk.ccCloseDay||15);
+  // Só conta como gasto real se a fatura estiver fechada
+  if(!isCardInvoiceClosed(closeDay)) return 0;
+  return computeCardInvoice(bkId, cardId);
+}
+
+// Computa o total da fatura ABERTA de um cartão (previsão para próximo mês)
+function computeOpenCardInvoice(bkId, cardId){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  const card = cards.find(c=>c.id===cardId);
+  const closeDay = card ? (card.closeDay||15) : (bk.ccCloseDay||15);
+  // Só é previsão se a fatura estiver ABERTA
+  if(isCardInvoiceClosed(closeDay)) return 0;
+  return computeCardInvoice(bkId, cardId);
+}
+
+// Total de faturas FECHADAS do banco (descontam do saldo)
+function computeClosedCCInvoice(bkId){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  if(cards.length>0){
+    return cards.reduce((s,c)=>s+computeClosedCardInvoice(bkId,c.id),0);
+  }
+  if(!bk.hasCC) return 0;
+  return computeClosedCardInvoice(bkId, null);
+}
+
+// Total de faturas ABERTAS do banco (previsão próximo mês)
+function computeOpenCCInvoice(bkId){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  if(cards.length>0){
+    return cards.reduce((s,c)=>s+computeOpenCardInvoice(bkId,c.id),0);
+  }
+  if(!bk.hasCC) return 0;
+  return computeOpenCardInvoice(bkId, null);
 }
 
 // ── PAYMENT METHOD ────────────────────────────────────
@@ -1128,17 +1220,12 @@ function updatePayMethodInfo(){
 }
 
 // ── FORECAST LOGIC ────────────────────────────────────
-// A transaction is "confirmed" (real spend) if its date <= today
-// It is "forecast" if its date is in the future
+// Qualquer lançamento com data futura é "previsão"
+// O saldo desconta normalmente, mas é sinalizado como previsão na interface
 function isForecast(tx){
   const today = new Date(); today.setHours(0,0,0,0);
   const txDate = new Date(tx.date+'T00:00:00');
-  // Income with future date = forecast (salary not yet received)
-  if(tx.type==='income') return txDate > today;
-  // CC card expenses: confirmed if date <= today (we record on spend day)
-  // but billing happens on invoice close day — the spend itself is confirmed if date <= today
-  if(tx.type==='expense') return txDate > today;
-  return false;
+  return txDate > today;
 }
 
 // For a CC card expense, compute which invoice month it belongs to
@@ -1825,14 +1912,38 @@ function deleteCCCard(){
 // ════════════════════════════════════════════════════════
 // INVESTMENT ITEM CRUD (inside bank)
 // ════════════════════════════════════════════════════════
+function renderInvTypeGrid(){
+  const grid = document.getElementById('invTypeGrid');
+  if(!grid) return;
+  grid.innerHTML = INV_TYPES.map(t=>{
+    const sel = selectedInvType === t.id;
+    const border = sel ? `border-color:${t.color};background:${t.color}18` : 'border-color:var(--border);background:transparent';
+    const textColor = sel ? t.color : 'var(--t2)';
+    return `<button onclick="selectInvType('${t.id}')" style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--rsm);border:1.5px solid;${border};cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s">
+      <span style="font-size:18px;line-height:1">${t.icon}</span>
+      <div style="text-align:left">
+        <div style="font-size:12px;font-weight:600;color:${textColor};line-height:1.2">${t.label}</div>
+        <div style="font-size:9px;color:var(--t3);margin-top:1px">${t.desc}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function selectInvType(id){
+  selectedInvType = id;
+  renderInvTypeGrid();
+}
+
 function openAddInvItem(bankId){
   editingInvItemBankId = bankId;
   editingInvItemId = null;
+  selectedInvType = 'cdb';
   document.getElementById('invItemModalTitle').textContent = 'Novo Investimento';
   document.getElementById('invItemName').value = '';
   document.getElementById('invItemAmt').value = '';
   document.getElementById('btnDelInvItem').style.display = 'none';
   openModal('invItemModal');
+  renderInvTypeGrid();
 }
 
 function openEditInvItem(bankId, invId){
@@ -1841,11 +1952,13 @@ function openEditInvItem(bankId, invId){
   if(!inv) return;
   editingInvItemBankId = bankId;
   editingInvItemId = invId;
+  selectedInvType = inv.invType || 'cdb';
   document.getElementById('invItemModalTitle').textContent = 'Editar Investimento';
   document.getElementById('invItemName').value = inv.name;
   document.getElementById('invItemAmt').value = inv.amount||'';
   document.getElementById('btnDelInvItem').style.display = 'block';
   openModal('invItemModal');
+  renderInvTypeGrid();
 }
 
 function saveInvItem(){
@@ -1855,16 +1968,26 @@ function saveInvItem(){
   const bkIdx = S.banks.findIndex(b=>b.id===editingInvItemBankId);
   if(bkIdx<0){showToast('⚠️ Banco não encontrado');return;}
   if(!S.banks[bkIdx].investments) S.banks[bkIdx].investments=[];
+  const typeObj = INV_TYPES.find(t=>t.id===selectedInvType) || INV_TYPES[0];
   if(editingInvItemId){
     const ii = S.banks[bkIdx].investments.findIndex(i=>i.id===editingInvItemId);
-    if(ii>-1) S.banks[bkIdx].investments[ii]={...S.banks[bkIdx].investments[ii], name, amount, lastDate:new Date().toISOString().slice(0,10)};
+    if(ii>-1) S.banks[bkIdx].investments[ii]={
+      ...S.banks[bkIdx].investments[ii],
+      name, amount, invType: typeObj.id,
+      lastDate: new Date().toISOString().slice(0,10)
+    };
     showToast('✅ Investimento atualizado');
   } else {
-    S.banks[bkIdx].investments.push({id:uid(), name, amount, lastDate:new Date().toISOString().slice(0,10)});
+    S.banks[bkIdx].investments.push({
+      id:uid(), name, amount,
+      invType: typeObj.id,
+      lastDate: new Date().toISOString().slice(0,10)
+    });
     showToast('✅ Investimento adicionado');
   }
   save(); closeModal('invItemModal'); renderHome();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
 }
 
 function deleteInvItem(){
@@ -1890,7 +2013,12 @@ function openInvoiceDetail(bankId, cardId){
   const dueDay = card ? card.dueDay : (bk&&bk.ccDueDay||5);
 
   document.getElementById('invDetTitle').textContent = '💳 '+cardName;
-  document.getElementById('invDetInfo').textContent = `Fecha dia ${closeDay} · Vence dia ${dueDay}`;
+  const isClosed = isCardInvoiceClosed(closeDay);
+  const statusStr = isClosed
+    ? `🔒 Fatura FECHADA — gasto real · Vence dia ${dueDay}`
+    : `⏳ Fatura ABERTA — previsão próx. mês · Fecha dia ${closeDay}`;
+  const statusColor = isClosed ? 'var(--red)' : 'var(--orange)';
+  document.getElementById('invDetInfo').innerHTML = `<span style="color:${statusColor};font-weight:600">${statusStr}</span>`;
 
   renderInvoiceDetailItems(bankId, cardId);
 
@@ -1999,27 +2127,50 @@ function renderHome(){
   document.getElementById('mlbl').textContent=MONTHS[S.currentMonth].slice(0,3)+' '+S.currentYear;
   const allTxs=getMonthTxs();
 
-  // Separate confirmed vs forecast
-  const confirmedExp = allTxs.filter(t=>t.type==='expense'&&!isForecast(t));
-  const forecastExp  = allTxs.filter(t=>t.type==='expense'&&isForecast(t));
-  const confirmedInc = allTxs.filter(t=>t.type==='income'&&!isForecast(t));
-  const forecastInc  = allTxs.filter(t=>t.type==='income'&&isForecast(t));
+  // ── Separar confirmado vs previsão ──
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isF = t => new Date(t.date+'T00:00:00') > today;
+
+  const confirmedInc = allTxs.filter(t=>t.type==='income' && !isF(t));
+  const forecastInc  = allTxs.filter(t=>t.type==='income' && isF(t));
+  const confirmedExp = allTxs.filter(t=>t.type==='expense' && !isF(t));
+  const forecastExp  = allTxs.filter(t=>t.type==='expense' && isF(t));
+  const confirmedInv = allTxs.filter(t=>t.type==='investment' && !isF(t));
+  const forecastInv  = allTxs.filter(t=>t.type==='investment' && isF(t));
 
   const income   = allTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
   const expense  = allTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-  const invested = allTxs.filter(t=>t.type==='investment').reduce((s,t)=>s+t.amount,0);
-  const ccTotal  = S.banks.filter(b=>b.hasCC).reduce((s,b)=>s+computeCCInvoice(b.id),0);
-  const balance  = income - expense;
+  // Investimentos: só os confirmados (data <= hoje) saem do saldo e do total apartado
+  const investedConfirmed = confirmedInv.reduce((s,t)=>s+t.amount,0);
+  const investedForecast  = forecastInv.reduce((s,t)=>s+t.amount,0);
+
+  // Faturas CC
+  const ccClosedTotal = S.banks.reduce((s,b)=>s+computeClosedCCInvoice(b.id),0);
+  const ccOpenTotal   = S.banks.reduce((s,b)=>s+computeOpenCCInvoice(b.id),0);
+  const ccTotal = ccClosedTotal + ccOpenTotal;
+
+  // Total apartado em investimentos (bancos) — só o que já foi aplicado (data chegou)
+  const totalInvested = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
+
+  // Saldo disponível = entradas - gastos - faturas fechadas - investimentos confirmados
+  // (previsões de investimento futuro NÃO saem ainda do saldo)
+  const balance = income - expense - ccClosedTotal - investedConfirmed;
+
+  // Indicador se o saldo inclui previsões
+  const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0;
 
   // ── Hero balance ──
   const hAmt = document.getElementById('hAmt');
   hAmt.textContent = fmt(balance);
   hAmt.className = 'hero-amt' + (balance < 0 ? ' neg' : '');
 
-  // sub text: savings rate or warning
   const subEl = document.getElementById('hSubText');
   const badgeEl = document.getElementById('hBadge');
-  if(income > 0){
+  if(hasForecast){
+    subEl.textContent = 'Inclui previsões futuras';
+    badgeEl.textContent = '⏳ Previsão';
+    badgeEl.className = 'hero-badge badge-neu';
+  } else if(income > 0){
     const savingsRate = Math.round((balance / income) * 100);
     subEl.textContent = 'Taxa de poupança este mês';
     badgeEl.textContent = (savingsRate >= 0 ? '+' : '') + savingsRate + '%';
@@ -2031,7 +2182,7 @@ function renderHome(){
   }
 
   // ── Budget bar ──
-  const pct = income > 0 ? Math.min(100, Math.round(expense / income * 100)) : 0;
+  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + ccClosedTotal) / income * 100)) : 0;
   const pctEl = document.getElementById('progPct');
   pctEl.textContent = pct + '%';
   pctEl.style.color = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
@@ -2041,22 +2192,36 @@ function renderHome(){
 
   // ── Metric cells ──
   document.getElementById('hInc').textContent = fmt(income);
-  const fInc = forecastInc.reduce((s,t)=>s+t.amount,0);
-  document.getElementById('hIncSub').textContent = fInc > 0 ? `+${fmt(fInc)} previsto` : confirmedInc.length + ' lançamento' + (confirmedInc.length!==1?'s':'');
+  const fIncAmt = forecastInc.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('hIncSub').textContent = fIncAmt > 0
+    ? `⏳ ${fmt(fIncAmt)} a receber`
+    : confirmedInc.length + ' lançamento' + (confirmedInc.length!==1?'s':'');
 
   document.getElementById('hExp').textContent = fmt(expense);
-  const fExp = forecastExp.reduce((s,t)=>s+t.amount,0);
-  document.getElementById('hExpSub').textContent = fExp > 0 ? fmt(fExp) + ' previsto' : confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
+  const fExpAmt = forecastExp.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('hExpSub').textContent = fExpAmt > 0
+    ? `⏳ ${fmt(fExpAmt)} previsto`
+    : confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
 
-  document.getElementById('hInv').textContent = fmt(invested);
-  const invPct = income > 0 ? Math.round(invested/income*100) : 0;
-  document.getElementById('hInvSub').textContent = invested > 0 ? invPct + '% da renda' : 'Nenhum este mês';
+  // Investimentos: mostra total apartado (confirmados) + alerta de futuros
+  document.getElementById('hInv').textContent = fmt(totalInvested);
+  document.getElementById('hInvSub').textContent = investedForecast > 0
+    ? `⏳ ${fmt(investedForecast)} agendado`
+    : (totalInvested > 0 ? 'Total apartado' : 'Nenhum investimento');
 
   document.getElementById('hCC').textContent = fmt(ccTotal);
-  const ccBanks = S.banks.filter(b=>b.hasCC);
-  document.getElementById('hCCSub').textContent = ccBanks.length > 0
-    ? ccBanks.length + ' cartão' + (ccBanks.length!==1?'s':'')
-    : 'Sem cartões';
+  if(ccClosedTotal > 0 && ccOpenTotal > 0){
+    document.getElementById('hCCSub').textContent = `${fmt(ccClosedTotal)} fechada · ⏳ ${fmt(ccOpenTotal)} aberta`;
+  } else if(ccClosedTotal > 0){
+    document.getElementById('hCCSub').textContent = `Fatura fechada ✓`;
+  } else if(ccOpenTotal > 0){
+    document.getElementById('hCCSub').textContent = `⏳ Fatura ainda aberta`;
+  } else {
+    const ccBanks = S.banks.filter(b=>bankHasCC(b));
+    document.getElementById('hCCSub').textContent = ccBanks.length > 0
+      ? ccBanks.length + ' cartão' + (ccBanks.length!==1?'s':'')
+      : 'Sem cartões';
+  }
 
   // ── Net worth bar ──
   renderNWBar();
@@ -2072,28 +2237,36 @@ function renderNWBar(){
 
   const totalBalance = S.banks.reduce((s,b)=>s+(b.balance||0),0);
   const totalInv     = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
-  const totalCC      = S.banks.filter(b=>b.hasCC).reduce((s,b)=>s+computeCCInvoice(b.id),0);
+  // Apenas faturas FECHADAS descontam do patrimônio (dívida real)
+  const totalCC      = S.banks.reduce((s,b)=>s+computeClosedCCInvoice(b.id),0);
+  // Faturas abertas são previsão (mostradas separadamente)
+  const totalCCOpen  = S.banks.reduce((s,b)=>s+computeOpenCCInvoice(b.id),0);
   const netWorth     = totalBalance + totalInv - totalCC;
 
+  // Saldo LÍQUIDO (dinheiro disponível, sem investimentos)
+  const totalLiquid  = S.banks.reduce((s,b)=>s+bankLiquidBalance(b),0);
   document.getElementById('nwVal').textContent = fmt(netWorth);
   document.getElementById('nwVal').style.color = netWorth < 0 ? 'var(--red)' : 'var(--accent)';
 
   // Proportional bar segments
-  const total = totalBalance + totalInv + totalCC || 1;
-  const bPct  = Math.round(totalBalance/total*100);
+  const total = totalLiquid + totalInv + totalCC + totalCCOpen || 1;
+  const bPct  = Math.round(totalLiquid/total*100);
   const iPct  = Math.round(totalInv/total*100);
-  const cPct  = Math.max(0, 100 - bPct - iPct);
+  const cPct  = Math.round(totalCC/total*100);
+  const oPct  = Math.max(0, 100 - bPct - iPct - cPct);
   const track = document.getElementById('nwTrack');
   track.innerHTML =
-    (totalBalance>0 ? `<div class="nw-seg" style="width:${bPct}%;background:var(--blue)"></div>` : '') +
+    (totalLiquid>0  ? `<div class="nw-seg" style="width:${bPct}%;background:var(--blue)"></div>` : '') +
     (totalInv>0     ? `<div class="nw-seg" style="width:${iPct}%;background:var(--accent)"></div>` : '') +
-    (totalCC>0      ? `<div class="nw-seg" style="width:${cPct}%;background:var(--red);opacity:.6"></div>` : '');
+    (totalCC>0      ? `<div class="nw-seg" style="width:${cPct}%;background:var(--red);opacity:.6"></div>` : '') +
+    (totalCCOpen>0  ? `<div class="nw-seg" style="width:${oPct}%;background:var(--orange);opacity:.5"></div>` : '');
 
   const legend = document.getElementById('nwLegend');
   legend.innerHTML =
-    (totalBalance>0 ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--blue)"></div>Conta ${fmt(totalBalance)}</div>` : '') +
-    (totalInv>0     ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--accent)"></div>Invest. ${fmt(totalInv)}</div>` : '') +
-    (totalCC>0      ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--red)"></div>Fatura ${fmt(totalCC)}</div>` : '');
+    (totalLiquid>0   ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--blue)"></div>Disponível ${fmt(totalLiquid)}</div>` : '') +
+    (totalInv>0      ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--accent)"></div>Invest. 🔒 ${fmt(totalInv)}</div>` : '') +
+    (totalCC>0       ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--red)"></div>Fatura fechada ${fmt(totalCC)}</div>` : '') +
+    (totalCCOpen>0   ? `<div class="nw-leg-item"><div class="nw-leg-dot" style="background:var(--orange)"></div>Prev. próx. mês ${fmt(totalCCOpen)}</div>` : '');
 }
 
 function renderCCPanel(){
@@ -2126,6 +2299,7 @@ function renderCCPanel(){
     const pct   = limit>0 ? Math.min(100,Math.round(inv/limit*100)) : 0;
     const barColor = pct>80 ? 'var(--red)' : pct>60 ? 'var(--orange)' : 'var(--blue)';
     const cardName = card ? card.name : cc.name;
+    const isClosed = isCardInvoiceClosed(closeDay);
 
     let daysToClose = closeDay - now.getDate();
     if(daysToClose < 0){
@@ -2133,7 +2307,17 @@ function renderCCPanel(){
       daysToClose = daysInMonth - now.getDate() + closeDay;
     }
     const urgencyClass = daysToClose <= 3 ? 'cc-urg-danger' : daysToClose <= 7 ? 'cc-urg-warn' : 'cc-urg-ok';
-    const urgencyLabel = daysToClose === 0 ? 'Fecha hoje' : `Fecha em ${daysToClose}d`;
+
+    // Status: fatura fechada (gasto real) ou aberta (previsão próximo mês)
+    let statusLabel, statusClass;
+    if(isClosed){
+      statusLabel = '🔒 Fatura fechada — gasto real';
+      statusClass = 'cc-urg-danger';
+    } else {
+      statusLabel = `⏳ Aberta · fecha em ${daysToClose}d`;
+      statusClass = urgencyClass;
+    }
+
     const clickFn = card ? `openInvoiceDetail('${cc.id}','${card.id}')` : `openBankDetail('${cc.id}')`;
 
     return `<div class="cc-row" onclick="${clickFn}">
@@ -2146,7 +2330,8 @@ function renderCCPanel(){
       <div class="cc-rright">
         <div class="cc-ramt">${fmt(inv)}</div>
         ${cc.ccLimit>0?`<div class="cc-rlimit">de ${fmt(cc.ccLimit)}</div>`:''}
-        <div class="cc-urgency ${urgencyClass}">${urgencyLabel}</div>
+        <div class="cc-urgency ${statusClass}">${statusLabel}</div>
+        ${isClosed?`<div style="font-size:8px;color:var(--red);margin-top:2px">Descontado do saldo</div>`:`<div style="font-size:8px;color:var(--orange);margin-top:2px">Previsão próx. mês</div>`}
       </div>
     </div>`;
   }).join('');
@@ -2217,12 +2402,17 @@ function renderBankFolders(){
         const inv = computeCardInvoice(bk.id, card.id);
         const pct = card.limit>0 ? Math.min(100,Math.round(inv/card.limit*100)) : 0;
         const barColor = pct>80?'var(--red)':pct>60?'var(--orange)':'var(--blue)';
+        const isClosed = isCardInvoiceClosed(card.closeDay||15);
+        const invColor = isClosed ? 'var(--red)' : 'var(--orange)';
+        const invStatus = isClosed
+          ? `<span style="font-size:8px;color:var(--red);margin-left:4px">🔒 Fechada</span>`
+          : `<span style="font-size:8px;color:var(--orange);margin-left:4px">⏳ Aberta (prev. próx. mês)</span>`;
         body += `<div class="cc-card-item">
           <div class="cc-card-row">
             <span class="cc-card-name">💳 ${card.name}</span>
-            <span class="cc-card-inv">${fmt(inv)}</span>
+            <span class="cc-card-inv" style="color:${invColor}">${fmt(inv)}</span>
           </div>
-          <div class="cc-card-meta">Fecha dia ${card.closeDay} · Vence dia ${card.dueDay}${card.limit>0?' · Limite '+fmt(card.limit):''}</div>
+          <div class="cc-card-meta">Fecha dia ${card.closeDay} · Vence dia ${card.dueDay}${card.limit>0?' · Limite '+fmt(card.limit):''}${invStatus}</div>
           ${card.limit>0?`<div class="cc-card-bar"><div class="cc-card-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>`:''}
           <div class="cc-card-actions">
             <button class="bk-sub-btn" onclick="event.stopPropagation();openInvoiceDetail('${bk.id}','${card.id}')">🧾 Ver fatura</button>
@@ -2265,11 +2455,15 @@ function renderBankFolders(){
     if(invs.length>0){
       invs.forEach(inv=>{
         const d = inv.lastDate&&inv.lastDate!=='—' ? new Date(inv.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
+        const typeObj = INV_TYPES.find(t=>t.id===inv.invType) || INV_TYPES[INV_TYPES.length-1];
         body += `<div class="inv-item">
-          <div class="inv-item-ico">📈</div>
+          <div class="inv-item-ico" style="background:${typeObj.color}18">${typeObj.icon}</div>
           <div class="inv-item-inf">
             <div class="inv-item-name">${inv.name}</div>
-            <div class="inv-item-sub">Última mov: ${d}</div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+              <span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;background:${typeObj.color}18;color:${typeObj.color}">${typeObj.label}</span>
+              <span class="inv-item-sub">Últ: ${d}</span>
+            </div>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             <span class="inv-item-amt">${fmt(inv.amount||0)}</span>
@@ -2386,11 +2580,11 @@ function renderTxList(txs, containerId){
     const cls={expense:'tv-neg',income:'tv-pos',transfer:'tv-neu',investment:'tv-inv',withdrawal:'tv-neu',cc_payment:'tv-ora'}[t.type]||'';
     const parcelTag=t.parcelGroup?`<span class="tag-parcel">Parcela ${t.parcelIndex}/${t.parcelTotal}</span>`:'';
     const recurTag=t.recurrent?'<span class="tag-recur">🔁</span>':'';
-    // Forecast vs confirmed tag
-    const forecast = (t.type==='expense'||t.type==='income') && isForecast(t);
+    // Qualquer lançamento com data futura é previsão
+    const forecast = isForecast(t);
     const statusTag = forecast
       ? `<span class="tag-forecast">⏳ Previsão</span>`
-      : (t.type==='expense'||t.type==='income') ? `<span class="tag-confirmed">✓</span>` : '';
+      : (t.type==='expense'||t.type==='income'||t.type==='investment') ? `<span class="tag-confirmed">✓</span>` : '';
     // Card spend tag
     const cardTag = (t.type==='expense' && (t.payMethod==='card'||(!t.payMethod && bk && bk.hasCC)))
       ? `<span class="tag-card-spend">💳 Cartão</span>` : '';
@@ -2606,12 +2800,12 @@ function renderInvestmentsPage(){
   S.banks.forEach(b=>{
     (b.investments||[]).forEach(inv=>{
       const key='_inv_'+b.id+'_'+inv.id;
-      if(!map[key]) map[key]={name:inv.name,invested:inv.amount||0,withdrawn:0,bankId:b.id,lastDate:inv.lastDate||'—'};
+      if(!map[key]) map[key]={name:inv.name,invested:inv.amount||0,withdrawn:0,bankId:b.id,lastDate:inv.lastDate||'—',invType:inv.invType||'outro'};
     });
     // legacy investment field
     if((b.investment||0)>0){
       const key='_bank_'+b.id;
-      if(!map[key]) map[key]={name:b.name+' (patrimônio)',invested:b.investment,withdrawn:0,bankId:b.id,lastDate:'—'};
+      if(!map[key]) map[key]={name:b.name+' (patrimônio)',invested:b.investment,withdrawn:0,bankId:b.id,lastDate:'—',invType:'outro'};
     }
   });
   const items=Object.values(map);
@@ -2626,12 +2820,16 @@ function renderInvestmentsPage(){
     const bk=S.banks.find(b=>b.id===i.bankId);
     const net=i.invested-i.withdrawn;
     const lastD=i.lastDate!=='—'?new Date(i.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
+    const typeObj = INV_TYPES.find(t=>t.id===i.invType) || INV_TYPES[INV_TYPES.length-1];
     return `<div class="inv-card">
       <div class="inv-h">
-        <div class="inv-ico">📈</div>
+        <div class="inv-ico" style="background:${typeObj.color}18;font-size:20px">${typeObj.icon}</div>
         <div class="inv-inf">
           <div class="inv-name">${i.name}</div>
-          <div class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+            <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:${typeObj.color}18;color:${typeObj.color}">${typeObj.label}</span>
+            <span class="inv-bank">${bk?bk.icon+' '+bk.name:'—'}</span>
+          </div>
         </div>
         <div class="inv-amt">${fmt(net)}</div>
       </div>
