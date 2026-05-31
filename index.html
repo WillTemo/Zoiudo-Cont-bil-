@@ -579,13 +579,30 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 <div id="page-investments" class="page">
   <div class="stitle" style="padding-top:16px">
     <h2>Investimentos</h2>
-    <button class="btn-sm" onclick="openInvFromPage()">+ Novo</button>
+    <div style="display:flex;gap:6px">
+      <button class="btn-sm" style="background:var(--s2);color:var(--text);border:1px solid var(--border)" onclick="openInvHistory()">📋 Histórico</button>
+      <button class="btn-sm" onclick="openInvFromPage()">+ Novo</button>
+    </div>
   </div>
   <div class="invpage">
     <div class="inv-summary">
       <div class="inv-total-lbl">Total Investido</div>
       <div class="inv-total" id="invTotal">R$ 0,00</div>
       <div id="invSummaryYield" style="font-size:11px;color:var(--green);margin-top:4px;font-family:'DM Mono',monospace"></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+        <div style="background:rgba(127,255,110,.08);border:1px solid rgba(127,255,110,.2);border-radius:8px;padding:7px 14px;text-align:center">
+          <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:600">Aportes</div>
+          <div id="invTotalDeposited" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);margin-top:2px">R$ 0,00</div>
+        </div>
+        <div style="background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.2);border-radius:8px;padding:7px 14px;text-align:center">
+          <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:600">Saques</div>
+          <div id="invTotalWithdrawn" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--purple);margin-top:2px">R$ 0,00</div>
+        </div>
+        <div style="background:rgba(93,240,160,.08);border:1px solid rgba(93,240,160,.2);border-radius:8px;padding:7px 14px;text-align:center">
+          <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:600">Rendimento</div>
+          <div id="invTotalYieldSum" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--green);margin-top:2px">R$ 0,00</div>
+        </div>
+      </div>
     </div>
     <div id="invList"><div class="empty"><div class="ei">📈</div><p>Nenhum investimento</p></div></div>
   </div>
@@ -922,6 +939,50 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
   </div>
 </div>
 
+<!-- ═══════════════════ MODAL: INVESTMENT WITHDRAW ═══ -->
+<div class="modal-ov" id="invWithdrawModal" onclick="closeBg(event,'invWithdrawModal')">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3>💸 Sacar Investimento</h3>
+    <div style="background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.25);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--t2);line-height:1.5">
+      O valor sacado será <strong style="color:var(--text)">debitado do investimento</strong> e <strong style="color:var(--text)">creditado na conta corrente</strong> do banco.
+    </div>
+    <div class="fg">
+      <label>Investimento</label>
+      <div id="withdrawInvName" style="background:var(--s2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;font-size:13px;font-weight:600;color:var(--accent)">—</div>
+    </div>
+    <div class="fg">
+      <label>Saldo disponível no investimento</label>
+      <div id="withdrawInvBalance" style="background:var(--s2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;font-size:15px;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace">R$ 0,00</div>
+    </div>
+    <div class="fg">
+      <label>Valor a Sacar (R$)</label>
+      <input type="number" id="withdrawAmt" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
+    </div>
+    <div class="fg">
+      <label>Data</label>
+      <input type="date" id="withdrawDate">
+    </div>
+    <div class="fg">
+      <label>Observação <span style="color:var(--t3);font-size:9px">opcional</span></label>
+      <input type="text" id="withdrawNote" placeholder="Ex: Resgate parcial, rentabilidade…">
+    </div>
+    <button class="btn-p" style="background:var(--purple);color:#fff" onclick="saveInvWithdraw()">💸 Confirmar Saque</button>
+    <button class="btn-g" onclick="closeModal('invWithdrawModal')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: INVESTMENT HISTORY ═══ -->
+<div class="modal-ov" id="invHistoryModal" onclick="closeBg(event,'invHistoryModal')">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3>📋 Histórico de Movimentações</h3>
+    <div id="invHistoryFilter" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap"></div>
+    <div id="invHistoryList" style="max-height:60dvh;overflow-y:auto"></div>
+    <button class="btn-g" onclick="closeModal('invHistoryModal')">Fechar</button>
+  </div>
+</div>
+
 <!-- ═══════════════════ MODAL: INVOICE DETAIL ═══ -->
 <div class="modal-ov" id="invoiceDetailModal" onclick="closeBg(event,'invoiceDetailModal')">
   <div class="modal inv-detail-modal">
@@ -974,6 +1035,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 let S = {
   banks: [],
   transactions: [],
+  invHistory: [], // {id, bankId, invId, invName, type:'deposit'|'withdraw'|'update'|'yield', amount, date, note}
   currentMonth: new Date().getMonth(),
   currentYear: new Date().getFullYear(),
 };
@@ -1034,6 +1096,7 @@ function load(){
         if(!bk.creditCards) bk.creditCards=[];
         if(!bk.investments) bk.investments=[];
       });
+      if(!S.invHistory) S.invHistory=[];
     }catch(e){}
     return;
   }
@@ -1945,7 +2008,20 @@ function saveTx(){
           if(invIdx>-1){
             S.banks[bkIdx].investments[invIdx].amount = (S.banks[bkIdx].investments[invIdx].amount||0) + amount;
             S.banks[bkIdx].investments[invIdx].lastDate = date;
+            // Record history
+            S.invHistory.push({
+              id: uid(), bankId, invId: linkedInvId,
+              invName: S.banks[bkIdx].investments[invIdx].name,
+              type: 'deposit', amount, date, note: name
+            });
           }
+        }
+      }
+      // Se deductBalance=true, desconta do saldo do banco
+      if(txInvDeduct && bankId){
+        const bkIdx = S.banks.findIndex(b=>b.id===bankId);
+        if(bkIdx>-1){
+          S.banks[bkIdx].balance = (S.banks[bkIdx].balance||0) - amount;
         }
       }
     }
@@ -1954,6 +2030,8 @@ function saveTx(){
       const bkIdx=S.banks.findIndex(b=>b.id===bankId);
       if(bkIdx>-1){
         S.banks[bkIdx].investment=Math.max(0,(S.banks[bkIdx].investment||0)-amount);
+        // Credita de volta na conta corrente
+        S.banks[bkIdx].balance = (S.banks[bkIdx].balance||0) + amount;
       }
     }
     showToast('✅ Lançamento salvo');
@@ -2237,19 +2315,50 @@ function saveInvItem(){
   const maturity = document.getElementById('invItemMaturity').value||'';
   if(editingInvItemId){
     const ii = S.banks[bkIdx].investments.findIndex(i=>i.id===editingInvItemId);
-    if(ii>-1) S.banks[bkIdx].investments[ii]={
-      ...S.banks[bkIdx].investments[ii],
-      name, amount, invType: typeObj.id,
-      yieldAmt, rate, startDate, maturity,
-      lastDate: new Date().toISOString().slice(0,10)
-    };
+    if(ii>-1){
+      const old = S.banks[bkIdx].investments[ii];
+      const oldAmt = old.amount||0;
+      S.banks[bkIdx].investments[ii]={
+        ...S.banks[bkIdx].investments[ii],
+        name, amount, invType: typeObj.id,
+        yieldAmt, rate, startDate, maturity,
+        lastDate: new Date().toISOString().slice(0,10)
+      };
+      // Record history: update
+      const diff = amount - oldAmt;
+      S.invHistory.push({
+        id: uid(), bankId: editingInvItemBankId, invId: editingInvItemId,
+        invName: name,
+        type: diff > 0 ? 'deposit' : diff < 0 ? 'withdraw' : 'update',
+        amount: Math.abs(diff) || amount,
+        date: new Date().toISOString().slice(0,10),
+        note: diff !== 0 ? `Atualização de saldo (${diff>0?'+':''}${diff.toLocaleString('pt-BR',{minimumFractionDigits:2})})` : 'Atualização de dados'
+      });
+      if(yieldAmt > 0 && yieldAmt !== (old.yieldAmt||0)){
+        S.invHistory.push({
+          id: uid(), bankId: editingInvItemBankId, invId: editingInvItemId,
+          invName: name, type: 'yield',
+          amount: yieldAmt - (old.yieldAmt||0),
+          date: new Date().toISOString().slice(0,10),
+          note: `Rendimento atualizado para ${fmt(yieldAmt)}`
+        });
+      }
+    }
     showToast('✅ Investimento atualizado');
   } else {
+    const newId = uid();
     S.banks[bkIdx].investments.push({
-      id:uid(), name, amount,
+      id: newId, name, amount,
       invType: typeObj.id,
       yieldAmt, rate, startDate, maturity,
       lastDate: new Date().toISOString().slice(0,10)
+    });
+    // Record history: initial deposit
+    S.invHistory.push({
+      id: uid(), bankId: editingInvItemBankId, invId: newId,
+      invName: name, type: 'deposit',
+      amount, date: new Date().toISOString().slice(0,10),
+      note: 'Aplicação inicial'
     });
     showToast('✅ Investimento adicionado');
   }
@@ -2768,6 +2877,7 @@ function renderBankFolders(){
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             <span class="inv-item-amt">${fmt(inv.amount||0)}</span>
+            <button class="bk-sub-btn purple" style="flex:0;padding:5px 8px;font-size:10px" onclick="event.stopPropagation();openInvWithdraw('${bk.id}','${inv.id}')">💸</button>
             <button class="bk-sub-btn" style="flex:0;padding:5px 8px;font-size:10px" onclick="event.stopPropagation();openEditInvItem('${bk.id}','${inv.id}')">✏️</button>
           </div>
         </div>`;
@@ -2994,13 +3104,18 @@ function renderBankDetail(){
     </div>`;
   invs.forEach(inv=>{
     const d=inv.lastDate&&inv.lastDate!=='—'?new Date(inv.lastDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
-    html+=`<div class="inv-item" onclick="openEditInvItem('${bk.id}','${inv.id}')">
-      <div class="inv-item-ico">📈</div>
+    const typeObj = INV_TYPES.find(t=>t.id===inv.invType) || INV_TYPES[INV_TYPES.length-1];
+    html+=`<div class="inv-item">
+      <div class="inv-item-ico" style="background:${typeObj.color}18">${typeObj.icon}</div>
       <div class="inv-item-inf">
         <div class="inv-item-name">${inv.name}</div>
         <div class="inv-item-sub">Última atualização: ${d}</div>
       </div>
-      <span class="inv-item-amt">${fmt(inv.amount||0)}</span>
+      <div style="display:flex;align-items:center;gap:5px">
+        <span class="inv-item-amt">${fmt(inv.amount||0)}</span>
+        <button onclick="event.stopPropagation();openInvWithdraw('${bk.id}','${inv.id}')" style="background:rgba(181,123,238,.1);border:1px solid rgba(181,123,238,.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸</button>
+        <button onclick="event.stopPropagation();openEditInvItem('${bk.id}','${inv.id}')" style="background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer">✏️</button>
+      </div>
     </div>`;
   });
   if((bk.investment||0)>0){
@@ -3140,6 +3255,17 @@ function renderInvestmentsPage(){
     }
   }
 
+  // Summary stats from invHistory
+  const totalDeposited = S.invHistory.filter(h=>h.type==='deposit').reduce((s,h)=>s+h.amount,0);
+  const totalWithdrawn = S.invHistory.filter(h=>h.type==='withdraw').reduce((s,h)=>s+h.amount,0);
+  const totalYieldHist = S.invHistory.filter(h=>h.type==='yield').reduce((s,h)=>s+h.amount,0);
+  const depEl = document.getElementById('invTotalDeposited');
+  const witEl = document.getElementById('invTotalWithdrawn');
+  const yldEl = document.getElementById('invTotalYieldSum');
+  if(depEl) depEl.textContent = fmt(totalDeposited);
+  if(witEl) witEl.textContent = fmt(totalWithdrawn);
+  if(yldEl) yldEl.textContent = fmt(totalYield+totalYieldHist);
+
   const el = document.getElementById('invList');
   if(!invItems.length && !txItems.length){
     el.innerHTML='<div class="empty"><div class="ei">📈</div><p>Nenhum investimento registrado</p></div>';
@@ -3186,6 +3312,7 @@ function renderInvestmentsPage(){
       </div>
       <div style="display:flex;gap:7px">
         <button onclick="openEditInvItem('${i.bankId}','${i.id}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
+        <button onclick="openInvWithdraw('${i.bankId}','${i.id}')" style="flex:1;background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.3);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸 Sacar</button>
         <button onclick="confirmDeleteInv('${i.bankId}','${i.id}')" style="flex:0 0 auto;background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">🗑️</button>
       </div>
     </div>`;
@@ -3241,11 +3368,154 @@ function doDeleteInv(bankId, invId){
   document.getElementById('choiceModal')?.remove();
   const bkIdx = S.banks.findIndex(b=>b.id===bankId);
   if(bkIdx<0) return;
+  const inv = (S.banks[bkIdx].investments||[]).find(i=>i.id===invId);
+  if(inv){
+    S.invHistory.push({
+      id: uid(), bankId, invId,
+      invName: inv.name, type: 'delete',
+      amount: inv.amount||0,
+      date: new Date().toISOString().slice(0,10),
+      note: 'Investimento excluído'
+    });
+  }
   S.banks[bkIdx].investments = (S.banks[bkIdx].investments||[]).filter(i=>i.id!==invId);
   save(); renderHome();
   if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
   showToast('🗑️ Investimento removido');
+}
+
+// ════════════════════════════════════════════════════════
+// INVESTMENT WITHDRAW
+// ════════════════════════════════════════════════════════
+let withdrawBankId = null;
+let withdrawInvId = null;
+
+function openInvWithdraw(bankId, invId){
+  const bk = S.banks.find(b=>b.id===bankId);
+  const inv = bk ? (bk.investments||[]).find(i=>i.id===invId) : null;
+  if(!inv) return;
+  withdrawBankId = bankId;
+  withdrawInvId = invId;
+  document.getElementById('withdrawInvName').textContent = inv.name;
+  document.getElementById('withdrawInvBalance').textContent = fmt(inv.amount||0);
+  document.getElementById('withdrawAmt').value = '';
+  document.getElementById('withdrawDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('withdrawNote').value = '';
+  openModal('invWithdrawModal');
+}
+
+function saveInvWithdraw(){
+  const amount = parseFloat(document.getElementById('withdrawAmt').value)||0;
+  if(!amount||amount<=0){showToast('⚠️ Informe o valor a sacar');return;}
+  const date = document.getElementById('withdrawDate').value;
+  const note = document.getElementById('withdrawNote').value.trim() || 'Saque de investimento';
+
+  const bkIdx = S.banks.findIndex(b=>b.id===withdrawBankId);
+  if(bkIdx<0) return;
+  const invIdx = (S.banks[bkIdx].investments||[]).findIndex(i=>i.id===withdrawInvId);
+  if(invIdx<0) return;
+
+  const inv = S.banks[bkIdx].investments[invIdx];
+  if(amount > (inv.amount||0)){
+    showToast('⚠️ Valor maior que o saldo do investimento');return;
+  }
+
+  // Debita do investimento
+  S.banks[bkIdx].investments[invIdx].amount = (inv.amount||0) - amount;
+  S.banks[bkIdx].investments[invIdx].lastDate = date;
+  // Credita na conta corrente do banco
+  S.banks[bkIdx].balance = (S.banks[bkIdx].balance||0) + amount;
+
+  // Record in invHistory
+  S.invHistory.push({
+    id: uid(), bankId: withdrawBankId, invId: withdrawInvId,
+    invName: inv.name, type: 'withdraw',
+    amount, date, note
+  });
+
+  // Also record as a transaction (withdrawal type) for the month
+  const d = new Date(date+'T12:00:00');
+  const k = mkey(d.getFullYear(), d.getMonth()+1);
+  S.transactions.push({
+    id: uid(), type: 'withdrawal',
+    name: 'Saque: '+inv.name,
+    amount, category: '💸 Retirada',
+    bankId: withdrawBankId, bankToId: '',
+    date, month: k, recurrent: false,
+    payMethod: 'cash', invId: withdrawInvId
+  });
+
+  save();
+  closeModal('invWithdrawModal');
+  renderHome();
+  if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
+  if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  showToast('✅ Saque registrado — conta corrente creditada');
+}
+
+// ════════════════════════════════════════════════════════
+// INVESTMENT HISTORY
+// ════════════════════════════════════════════════════════
+const INV_HIST_LABELS = {
+  deposit:  { icon: '📥', label: 'Aporte',      color: 'var(--accent)'  },
+  withdraw: { icon: '💸', label: 'Saque',       color: 'var(--purple)'  },
+  update:   { icon: '✏️', label: 'Atualização', color: 'var(--blue)'    },
+  yield:    { icon: '📈', label: 'Rendimento',  color: 'var(--green)'   },
+  delete:   { icon: '🗑️', label: 'Excluído',   color: 'var(--red)'     },
+};
+
+let invHistoryTypeFilter = 'all';
+
+function openInvHistory(){
+  invHistoryTypeFilter = 'all';
+  renderInvHistoryModal();
+  openModal('invHistoryModal');
+}
+
+function renderInvHistoryModal(){
+  const types = ['all','deposit','withdraw','update','yield','delete'];
+  const labels = {all:'Todos', deposit:'Aportes', withdraw:'Saques', update:'Atualizações', yield:'Rendimentos', delete:'Excluídos'};
+  document.getElementById('invHistoryFilter').innerHTML = types.map(t=>{
+    const on = t === invHistoryTypeFilter;
+    return `<button onclick="invHistoryTypeFilter='${t}';renderInvHistoryModal()" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'var(--s2)'};color:${on?'#0b0d10':'var(--t2)'};cursor:pointer;font-family:'DM Sans',sans-serif">${labels[t]}</button>`;
+  }).join('');
+
+  const sorted = [...S.invHistory].sort((a,b)=>b.date.localeCompare(a.date));
+  const filtered = invHistoryTypeFilter === 'all' ? sorted : sorted.filter(h=>h.type===invHistoryTypeFilter);
+
+  if(!filtered.length){
+    document.getElementById('invHistoryList').innerHTML = '<div class="empty"><div class="ei">📋</div><p>Nenhuma movimentação registrada</p></div>';
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+  filtered.forEach(h => {
+    if(h.date !== lastDate){
+      const dd = new Date(h.date+'T12:00:00');
+      html += `<div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);padding:10px 0 5px">${dd.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</div>`;
+      lastDate = h.date;
+    }
+    const meta = INV_HIST_LABELS[h.type] || INV_HIST_LABELS.update;
+    const bk = S.banks.find(b=>b.id===h.bankId);
+    const sign = (h.type==='withdraw'||h.type==='delete') ? '−' : '+';
+    const amtColor = (h.type==='withdraw'||h.type==='delete') ? 'var(--red)' : meta.color;
+    html += `<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
+      <div style="width:38px;height:38px;border-radius:10px;background:${meta.color}18;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${meta.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.invName}</div>
+        <div style="font-size:10px;color:var(--t2);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <span style="background:${meta.color}18;color:${meta.color};border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700">${meta.label}</span>
+          ${bk?`<span>${bk.icon} ${bk.name}</span>`:''}
+          ${h.note?`<span style="color:var(--t3)">${h.note}</span>`:''}
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:${amtColor};flex-shrink:0">${sign} ${fmt(h.amount)}</div>
+    </div>`;
+  });
+
+  document.getElementById('invHistoryList').innerHTML = html;
 }
 
 // ════════════════════════════════════════════════════════
