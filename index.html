@@ -781,6 +781,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
           <button class="tog" id="invDeductTog" onclick="toggleInvDeduct()"></button>
         </div>
       </div>
+      <!-- Vincular a investimento existente -->
+      <div class="fg" id="txLinkedInvWrap" style="display:none">
+        <label>Adicionar a investimento existente <span style="color:var(--t3);font-size:9px">opcional</span></label>
+        <select id="txLinkedInv">
+          <option value="">— Novo / nenhum —</option>
+        </select>
+        <div style="font-size:10px;color:var(--t2);margin-top:5px" id="txLinkedInvInfo"></div>
+      </div>
     </div>
 
     <!-- INSTALLMENTS (expense on CC only) -->
@@ -1172,26 +1180,20 @@ function getCardPayments(bkId, cardId){
 //   - Fatura ABERTA  = hoje < data de fechamento → gastos ainda estão acumulando
 //   - Fatura FECHADA = hoje >= data de fechamento → fatura consolidada, desconta do saldo
 //
-// O ciclo repeats mensalmente: o próximo fechamento é sempre 1 mês após o anterior.
-// Exemplo: fecha dia 5/junho → próximo fecha dia 5/julho, e assim por diante.
+// REGRA DO BUG CORRIGIDO: a fatura só desconta no MÊS em que ela fecha/vence.
+// Nos meses anteriores ela não aparece como desconto — só aparece a previsão das compras.
+// Nos meses seguintes, são as faturas futuras (novos ciclos).
 
 // Retorna a data de fechamento desta fatura como objeto Date (meia-noite)
 function getCardCloseDate(card, bk){
   const closeDay = card ? (card.closeDay||5) : (bk&&bk.ccCloseDay||5);
-  // Se temos closeMonth definido no cartão, usamos como âncora para calcular o ciclo atual
   if(card && card.closeMonth != null){
     const anchor = new Date(new Date().getFullYear(), card.closeMonth, closeDay, 0, 0, 0);
-    // Se a âncora já passou, avança mês a mês até encontrar a próxima data de fechamento >= hoje
     const today = new Date(); today.setHours(0,0,0,0);
     let dt = new Date(anchor);
-    // Se a data âncora é no futuro ou hoje → usa ela
-    // Se já passou → avança mensalmente
-    while(dt < today){
-      dt.setMonth(dt.getMonth()+1);
-    }
+    while(dt < today){ dt.setMonth(dt.getMonth()+1); }
     return dt;
   }
-  // Fallback: só o dia, calcular o próximo fechamento a partir de hoje
   const today = new Date(); today.setHours(0,0,0,0);
   const cd = closeDay||5;
   let dt = new Date(today.getFullYear(), today.getMonth(), cd, 0, 0, 0);
@@ -1206,9 +1208,73 @@ function isCardInvoiceClosed(closeDay, card, bk){
   return today >= closeDate;
 }
 
+// Retorna o ano+mês (YYYY-MM) em que a fatura do ciclo atual fecha/vence.
+// Este é o único mês onde ela deve ser descontada do saldo disponível.
+function getCardInvoiceCloseMonthKey(card, bk){
+  const closeDate = getCardCloseDate(card, bk);
+  return mkey(closeDate.getFullYear(), closeDate.getMonth()+1);
+}
+
+// Computa gastos do cartão que pertencem ao ciclo da fatura atual
+// (todas as despesas de cartão não pagas até hoje)
+function computeCardInvoice(bkId, cardId){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  const card = cards.find(c=>c.id===cardId);
+  const base = card ? (card.initialInvoice||0) : (bk.ccInvoice||0);
+
+  const expenseTxs = S.transactions.filter(t=> {
+    if(t.type!=='expense') return false;
+    if(t.bankId!==bkId) return false;
+    if(t.payMethod!=='card' && t.payMethod) return false;
+    if(cardId) {
+      if(t.creditCardId && t.creditCardId!==cardId) return false;
+      if(!t.creditCardId && cards.length>1) return false;
+    }
+    return true;
+  });
+  const payments = S.transactions.filter(t=>
+    t.type==='cc_payment' && t.ccBankId===bkId &&
+    (cardId ? (t.creditCardId===cardId||!t.creditCardId) : true)
+  );
+  const totalExp = expenseTxs.reduce((s,t)=>s+t.amount,0);
+  const totalPay = payments.reduce((s,t)=>s+t.amount,0);
+  return Math.max(0, base + totalExp - totalPay);
+}
+
+// ── INVOICE PARA UM MÊS DE VISUALIZAÇÃO ESPECÍFICO ──────────────────────
+// A fatura SÓ desconta no mês em que ela fecha.
+// viewYear/viewMonth: o mês sendo exibido na tela (S.currentYear, S.currentMonth 0-based)
+
+function computeCardInvoiceForViewMonth(bkId, cardId, viewYear, viewMonth){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  const card = cards.find(c=>c.id===cardId);
+
+  // Descobre o mês-chave em que esta fatura fecha
+  const invoiceCloseKey = getCardInvoiceCloseMonthKey(card, bk);
+  const viewKey = mkey(viewYear, viewMonth+1);
+
+  // A fatura atual só desconta no mês de fechamento
+  if(invoiceCloseKey !== viewKey) return 0;
+
+  return computeCardInvoice(bkId, cardId);
+}
+
+function computeCCInvoiceForViewMonth(bkId, viewYear, viewMonth){
+  const bk = S.banks.find(b=>b.id===bkId);
+  if(!bk) return 0;
+  const cards = bk.creditCards||[];
+  if(cards.length>0){
+    return cards.reduce((s,c)=>s+computeCardInvoiceForViewMonth(bkId,c.id,viewYear,viewMonth),0);
+  }
+  if(!bk.hasCC) return 0;
+  return computeCardInvoiceForViewMonth(bkId, null, viewYear, viewMonth);
+}
+
 // Retorna o mês-chave da fatura do ciclo atual (aberto ou fechado)
-// Fatura aberta  → mês de fechamento (ainda acumulando)
-// Fatura fechada → mês de fechamento (já passou, é gasto real)
 function ccInvoiceMonthKey(bk){
   const now = new Date();
   const closeDay = bk.ccCloseDay||5;
@@ -1221,7 +1287,7 @@ function ccInvoiceMonthKey(bk){
   }
 }
 
-// Computa o total da fatura FECHADA de um cartão (valor que já descontou do saldo)
+// Computa o total da fatura FECHADA de um cartão (para exibição — sem filtro de mês de visualização)
 function computeClosedCardInvoice(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
@@ -1231,7 +1297,7 @@ function computeClosedCardInvoice(bkId, cardId){
   return computeCardInvoice(bkId, cardId);
 }
 
-// Computa o total da fatura ABERTA de um cartão (previsão — ainda acumulando)
+// Computa o total da fatura ABERTA de um cartão (previsão)
 function computeOpenCardInvoice(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
@@ -1241,7 +1307,7 @@ function computeOpenCardInvoice(bkId, cardId){
   return computeCardInvoice(bkId, cardId);
 }
 
-// Total de faturas FECHADAS do banco (descontam do saldo)
+// Total de faturas FECHADAS do banco
 function computeClosedCCInvoice(bkId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
@@ -1253,7 +1319,7 @@ function computeClosedCCInvoice(bkId){
   return computeClosedCardInvoice(bkId, null);
 }
 
-// Total de faturas ABERTAS do banco (previsão próximo mês)
+// Total de faturas ABERTAS do banco
 function computeOpenCCInvoice(bkId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
@@ -1510,6 +1576,7 @@ function setTxType(t){
   if(t!=='investment'){ txInvDeduct=false; document.getElementById('invDeductTog').classList.remove('on'); }
   updateParcelWrap();
   updatePayMethodInfo();
+  populateLinkedInvSelect();
   if(t!=='cc_payment'){
     const wrap=document.getElementById('txCCPayCardWrap');
     if(wrap) wrap.style.display='none';
@@ -1535,6 +1602,7 @@ function onTxBankChange(){
   document.getElementById('txCCInfo').style.display = (txType==='expense'&&isCC&&payMethod==='card'&&!hasCards)?'block':'none';
   updateParcelWrap();
   updatePayMethodInfo();
+  populateLinkedInvSelect();
 }
 
 function populateCCCardSelect(bkId){
@@ -1598,6 +1666,48 @@ function toggleInvDeduct(){
     ? '✅ O valor será descontado do dinheiro disponível'
     : 'Ative se o dinheiro saiu da sua conta para investir';
 }
+
+function populateLinkedInvSelect(){
+  const wrap = document.getElementById('txLinkedInvWrap');
+  const sel = document.getElementById('txLinkedInv');
+  const info = document.getElementById('txLinkedInvInfo');
+  if(!wrap||!sel) return;
+
+  if(txType !== 'investment'){
+    wrap.style.display = 'none';
+    return;
+  }
+
+  const bkId = document.getElementById('txBank').value;
+  const bk = S.banks.find(b=>b.id===bkId);
+  const invs = bk ? (bk.investments||[]) : [];
+
+  if(!invs.length){
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">— Novo / nenhum —</option>' +
+    invs.map(i=>{
+      const typeObj = INV_TYPES.find(t=>t.id===i.invType)||INV_TYPES[INV_TYPES.length-1];
+      return `<option value="${i.id}">${typeObj.icon} ${i.name} (${fmt(i.amount||0)})</option>`;
+    }).join('');
+  if(curVal) sel.value = curVal;
+
+  sel.onchange = ()=>{
+    const invId = sel.value;
+    if(!invId){ if(info) info.textContent=''; return; }
+    const inv = invs.find(i=>i.id===invId);
+    if(inv && info){
+      const typeObj = INV_TYPES.find(t=>t.id===inv.invType)||INV_TYPES[INV_TYPES.length-1];
+      info.textContent = `${typeObj.label} · Saldo atual: ${fmt(inv.amount||0)}`;
+      info.style.color = typeObj.color;
+    }
+  };
+  sel.onchange();
+}
 function toggleParcel(){
   txParcel=!txParcel;
   document.getElementById('parcelTog').classList.toggle('on',txParcel);
@@ -1622,6 +1732,11 @@ function resetTxForm(){
   document.getElementById('txParcelWrap').style.display='none';
   document.getElementById('txCatWrap').style.display='block';
   document.getElementById('txBankLabel').textContent='Banco';
+  // Reset linked inv
+  const liSel = document.getElementById('txLinkedInv');
+  if(liSel) liSel.value='';
+  const liWrap = document.getElementById('txLinkedInvWrap');
+  if(liWrap) liWrap.style.display='none';
   // Reset pay method buttons
   const pc = document.getElementById('payBtnCard');
   const pk = document.getElementById('payBtnCash');
@@ -1819,6 +1934,21 @@ function saveTx(){
       ...(creditCardId ? {creditCardId} : {}),
       ...(ccInvoiceMonth ? {ccInvoiceMonth} : {})
     });
+    // Se investimento vinculado a um existente, soma o valor ao investimento
+    if(txType==='investment' && bankId){
+      const linkedInvSel = document.getElementById('txLinkedInv');
+      const linkedInvId = linkedInvSel ? linkedInvSel.value : '';
+      if(linkedInvId){
+        const bkIdx = S.banks.findIndex(b=>b.id===bankId);
+        if(bkIdx>-1){
+          const invIdx = (S.banks[bkIdx].investments||[]).findIndex(i=>i.id===linkedInvId);
+          if(invIdx>-1){
+            S.banks[bkIdx].investments[invIdx].amount = (S.banks[bkIdx].investments[invIdx].amount||0) + amount;
+            S.banks[bkIdx].investments[invIdx].lastDate = date;
+          }
+        }
+      }
+    }
     // Se for retirada de investimento, deduz do campo investment do banco
     if(txType==='withdrawal' && bankId){
       const bkIdx=S.banks.findIndex(b=>b.id===bankId);
@@ -2306,8 +2436,10 @@ function renderHome(){
   const investedConfirmed = confirmedInv.filter(t=>t.deductBalance===true).reduce((s,t)=>s+t.amount,0);
   const investedForecast  = forecastInv.reduce((s,t)=>s+t.amount,0);
 
-  // Faturas CC (calculadas a partir dos gastos de cartão registrados)
-  // TODA fatura (aberta ou fechada) desconta do saldo disponível
+  // Faturas CC — só desconta no mês em que a fatura fecha/vence
+  // Para o mês visualizado: usa computeCCInvoiceForViewMonth
+  const ccViewTotal = S.banks.reduce((s,b)=>s+computeCCInvoiceForViewMonth(b.id, S.currentYear, S.currentMonth),0);
+  // Para exibição nos badges (aberta/fechada): usa as funções globais (baseadas em hoje)
   const ccClosedTotal = S.banks.reduce((s,b)=>s+computeClosedCCInvoice(b.id),0);
   const ccOpenTotal   = S.banks.reduce((s,b)=>s+computeOpenCCInvoice(b.id),0);
   const ccTotal = ccClosedTotal + ccOpenTotal;
@@ -2315,8 +2447,8 @@ function renderHome(){
   // Total apartado em investimentos (bancos) — apenas informativo, não desconta do disponível
   const totalInvested = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
 
-  // Saldo disponível = entradas - gastos em dinheiro - TODA fatura CC - investimentos lançados com "descontar do saldo"
-  const balance = income - expenseCash - ccTotal - investedConfirmed;
+  // Saldo disponível = entradas - gastos em dinheiro - fatura do mês visualizado - investimentos lançados com "descontar do saldo"
+  const balance = income - expenseCash - ccViewTotal - investedConfirmed;
 
   // Indicador se o saldo inclui previsões
   const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0;
@@ -2344,7 +2476,7 @@ function renderHome(){
   }
 
   // ── Budget bar ──
-  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + ccTotal) / income * 100)) : 0;
+  const pct = income > 0 ? Math.min(100, Math.round((expense + investedConfirmed + ccViewTotal) / income * 100)) : 0;
   const pctEl = document.getElementById('progPct');
   pctEl.textContent = pct + '%';
   pctEl.style.color = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--orange)' : 'var(--accent)';
@@ -2378,13 +2510,13 @@ function renderHome(){
       ? `💸 ${fmt(investedConfirmed)} descontado`
       : ((allInvConfirmed + totalInvested) > 0 ? '🔒 Apartado' : 'Nenhum investimento');
 
-  document.getElementById('hCC').textContent = fmt(ccTotal);
-  if(ccClosedTotal > 0 && ccOpenTotal > 0){
-    document.getElementById('hCCSub').textContent = `🔒 ${fmt(ccClosedTotal)} fechada · ⏳ ${fmt(ccOpenTotal)} aberta`;
-  } else if(ccClosedTotal > 0){
-    document.getElementById('hCCSub').textContent = `🔒 Fatura fechada — descontada`;
-  } else if(ccOpenTotal > 0){
-    document.getElementById('hCCSub').textContent = `⏳ ${fmt(ccOpenTotal)} — fatura aberta (descontada)`;
+  document.getElementById('hCC').textContent = fmt(ccViewTotal > 0 ? ccViewTotal : ccTotal);
+  if(ccViewTotal > 0){
+    document.getElementById('hCCSub').textContent = ccClosedTotal > 0
+      ? `🔒 Fatura fechada — descontada este mês`
+      : `⏳ Fatura vence este mês — descontada`;
+  } else if(ccTotal > 0){
+    document.getElementById('hCCSub').textContent = `⏳ ${fmt(ccTotal)} — vence em outro mês`;
   } else {
     const ccBanks = S.banks.filter(b=>bankHasCC(b));
     document.getElementById('hCCSub').textContent = ccBanks.length > 0
