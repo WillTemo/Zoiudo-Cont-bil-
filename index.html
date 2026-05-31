@@ -1741,10 +1741,9 @@ function saveTx(){
     const bankToId=txType==='transfer'?document.getElementById('txBankTo').value:'';
     const effPayMethod = txType==='expense' ? payMethod : 'cash';
 
-    // For card expenses on a CC bank: the transaction is recorded on the SPEND DATE (for visibility)
-    // but the invoice month (ccInvoiceMonth) tells us which billing cycle it falls into.
-    // The month field = the spend month (so it shows in the list for the month you spent it).
-    const k=mkey(d.getFullYear(),d.getMonth()+1);
+    // Para gastos de cartão: month = mês da fatura (onde o gasto aparece e é descontado)
+    // Para outros gastos: month = mês do gasto
+    let txMonth = mkey(d.getFullYear(), d.getMonth()+1);
     let ccInvoiceMonth = null;
     let creditCardId = null;
     if(txType==='expense' && effPayMethod==='card' && bankId){
@@ -1757,11 +1756,13 @@ function saveTx(){
       } else if(bkForCC && bkForCC.hasCC){
         ccInvoiceMonth = ccExpenseInvoiceMonth({date, payMethod:'card'}, bkForCC, null);
       }
+      // O gasto de cartão aparece no mês da fatura, não no mês da compra
+      if(ccInvoiceMonth) txMonth = ccInvoiceMonth;
     }
 
     S.transactions.push({
       id:uid(),type:txType,name,amount,category,bankId,bankToId,
-      date,month:k,recurrent:false,
+      date, month:txMonth, recurrent:false,
       payMethod:effPayMethod,
       ...(creditCardId ? {creditCardId} : {}),
       ...(ccInvoiceMonth ? {ccInvoiceMonth} : {})
