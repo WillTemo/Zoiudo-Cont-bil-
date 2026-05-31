@@ -1027,13 +1027,7 @@ function mkey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function curKey(){ return mkey(S.currentYear, S.currentMonth+1); }
 function getMonthTxs(){
   const k = curKey();
-  return S.transactions.filter(t=>{
-    // Standard: transaction's recorded month matches
-    if(t.month===k) return true;
-    // Card expenses: also show in the month their invoice cycle falls into
-    if(t.type==='expense' && t.payMethod==='card' && t.ccInvoiceMonth && t.ccInvoiceMonth===k) return true;
-    return false;
-  });
+  return S.transactions.filter(t=> t.month === k);
 }
 
 // Patrimônio LÍQUIDO = saldo + investimentos - faturas FECHADAS
@@ -1066,22 +1060,13 @@ function bankHasCC(bk){
 // For display: we sum all cc-type expenses linked to that bank that haven't been paid yet.
 // Simplified: ccInvoice on the bank = the manually-set base, and txs of type expense with bankId add to it.
 
-// Compute invoice for a specific credit card
-// Only counts expenses that belong to the CURRENT invoice cycle.
-// Cycle: from day after previous close → up to and including current close date.
+// Compute invoice total for a credit card = all card expenses not yet paid
 function computeCardInvoice(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return 0;
   const cards = bk.creditCards||[];
   const card = cards.find(c=>c.id===cardId);
   const base = card ? (card.initialInvoice||0) : (bk.ccInvoice||0);
-
-  // Current invoice close date
-  const closeDate = getCardCloseDate(card, bk);
-  // Start of cycle = close date of previous month
-  const prevClose = new Date(closeDate);
-  prevClose.setMonth(prevClose.getMonth()-1);
-  prevClose.setDate(prevClose.getDate()+1); // day after prev close = cycle start
 
   const expenseTxs = S.transactions.filter(t=> {
     if(t.type!=='expense') return false;
@@ -1091,13 +1076,11 @@ function computeCardInvoice(bkId, cardId){
       if(t.creditCardId && t.creditCardId!==cardId) return false;
       if(!t.creditCardId && cards.length>1) return false;
     }
-    // Only expenses within the current cycle
-    const txDate = new Date(t.date+'T00:00:00');
-    if(txDate < prevClose || txDate > closeDate) return false;
     return true;
   });
   const payments = S.transactions.filter(t=>
-    t.type==='cc_payment' && t.ccBankId===bkId && (cardId ? (t.creditCardId===cardId||!t.creditCardId) : true)
+    t.type==='cc_payment' && t.ccBankId===bkId &&
+    (cardId ? (t.creditCardId===cardId||!t.creditCardId) : true)
   );
   const totalExp = expenseTxs.reduce((s,t)=>s+t.amount,0);
   const totalPay = payments.reduce((s,t)=>s+t.amount,0);
@@ -1117,18 +1100,11 @@ function computeCCInvoice(bkId){
   return computeCardInvoice(bkId, null);
 }
 
-// Get all expense transactions that belong to the CURRENT invoice cycle of a card
+// Get all expense transactions for a card (shown in invoice detail modal)
 function getCardInvoiceTxs(bkId, cardId){
   const bk = S.banks.find(b=>b.id===bkId);
   if(!bk) return [];
   const cards = bk.creditCards||[];
-  const card = cards.find(c=>c.id===cardId);
-
-  const closeDate = getCardCloseDate(card, bk);
-  const prevClose = new Date(closeDate);
-  prevClose.setMonth(prevClose.getMonth()-1);
-  prevClose.setDate(prevClose.getDate()+1);
-
   return S.transactions.filter(t=>{
     if(t.type!=='expense') return false;
     if(t.bankId!==bkId) return false;
@@ -1137,8 +1113,6 @@ function getCardInvoiceTxs(bkId, cardId){
       if(t.creditCardId && t.creditCardId!==cardId) return false;
       if(!t.creditCardId && (cards.length>1)) return false;
     }
-    const txDate = new Date(t.date+'T00:00:00');
-    if(txDate < prevClose || txDate > closeDate) return false;
     return true;
   });
 }
@@ -2230,22 +2204,27 @@ function renderHome(){
   const forecastInv  = allTxs.filter(t=>t.type==='investment' && isF(t));
 
   const income   = allTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-  const expense  = allTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-  // Investimentos: só os confirmados (data <= hoje) saem do saldo e do total apartado
+  // Gastos em DINHEIRO (não cartão CC): saem diretamente do saldo
+  const expenseCash = allTxs.filter(t=>t.type==='expense' && t.payMethod!=='card').reduce((s,t)=>s+t.amount,0);
+  // Gastos de CARTÃO: entram na fatura, não saem diretamente do saldo aqui
+  const expenseCard = allTxs.filter(t=>t.type==='expense' && t.payMethod==='card').reduce((s,t)=>s+t.amount,0);
+  // Total de despesas para exibição nos cards de métrica
+  const expense = expenseCash + expenseCard;
+  // Investimentos: só os confirmados (data <= hoje) saem do saldo
   const investedConfirmed = confirmedInv.reduce((s,t)=>s+t.amount,0);
   const investedForecast  = forecastInv.reduce((s,t)=>s+t.amount,0);
 
-  // Faturas CC
+  // Faturas CC (calculadas a partir dos gastos de cartão registrados)
   const ccClosedTotal = S.banks.reduce((s,b)=>s+computeClosedCCInvoice(b.id),0);
   const ccOpenTotal   = S.banks.reduce((s,b)=>s+computeOpenCCInvoice(b.id),0);
   const ccTotal = ccClosedTotal + ccOpenTotal;
 
-  // Total apartado em investimentos (bancos) — só o que já foi aplicado (data chegou)
+  // Total apartado em investimentos (bancos)
   const totalInvested = S.banks.reduce((s,b)=>s+bankInvestmentTotal(b),0);
 
-  // Saldo disponível = entradas - gastos - faturas fechadas - investimentos confirmados
-  // (previsões de investimento futuro NÃO saem ainda do saldo)
-  const balance = income - expense - ccClosedTotal - investedConfirmed;
+  // Saldo disponível = entradas - gastos em dinheiro - fatura CC fechada - investimentos confirmados
+  // Gastos de cartão saem via fatura (ccClosedTotal), não duas vezes
+  const balance = income - expenseCash - ccClosedTotal - investedConfirmed;
 
   // Indicador se o saldo inclui previsões
   const hasForecast = forecastInc.length > 0 || forecastExp.length > 0 || ccOpenTotal > 0;
@@ -2290,9 +2269,13 @@ function renderHome(){
 
   document.getElementById('hExp').textContent = fmt(expense);
   const fExpAmt = forecastExp.reduce((s,t)=>s+t.amount,0);
-  document.getElementById('hExpSub').textContent = fExpAmt > 0
-    ? `⏳ ${fmt(fExpAmt)} previsto`
-    : confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
+  if(fExpAmt > 0){
+    document.getElementById('hExpSub').textContent = `⏳ ${fmt(fExpAmt)} previsto`;
+  } else if(expenseCard > 0){
+    document.getElementById('hExpSub').textContent = `💳 ${fmt(expenseCard)} no cartão`;
+  } else {
+    document.getElementById('hExpSub').textContent = confirmedExp.length + ' lançamento' + (confirmedExp.length!==1?'s':'');
+  }
 
   // Investimentos: mostra total apartado (confirmados) + alerta de futuros
   document.getElementById('hInv').textContent = fmt(totalInvested);
@@ -2302,11 +2285,11 @@ function renderHome(){
 
   document.getElementById('hCC').textContent = fmt(ccTotal);
   if(ccClosedTotal > 0 && ccOpenTotal > 0){
-    document.getElementById('hCCSub').textContent = `${fmt(ccClosedTotal)} fechada · ⏳ ${fmt(ccOpenTotal)} aberta`;
+    document.getElementById('hCCSub').textContent = `🔒 ${fmt(ccClosedTotal)} fechada · ⏳ ${fmt(ccOpenTotal)} aberta`;
   } else if(ccClosedTotal > 0){
-    document.getElementById('hCCSub').textContent = `Fatura fechada ✓`;
+    document.getElementById('hCCSub').textContent = `🔒 Fatura fechada — descontada`;
   } else if(ccOpenTotal > 0){
-    document.getElementById('hCCSub').textContent = `⏳ Fatura ainda aberta`;
+    document.getElementById('hCCSub').textContent = `⏳ ${fmt(ccOpenTotal)} — fatura aberta`;
   } else {
     const ccBanks = S.banks.filter(b=>bankHasCC(b));
     document.getElementById('hCCSub').textContent = ccBanks.length > 0
