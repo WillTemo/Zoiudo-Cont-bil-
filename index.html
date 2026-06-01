@@ -580,7 +580,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
   <div class="stitle" style="padding-top:16px">
     <h2>Investimentos</h2>
     <div style="display:flex;gap:6px">
-      <button class="btn-sm" style="background:var(--s2);color:var(--text);border:1px solid var(--border)" onclick="openInvHistory()">📋 Histórico</button>
+      <button class="btn-sm" style="background:var(--s2);color:var(--text);border:1px solid var(--border)" onclick="openInvHistory()">📋 Geral</button>
       <button class="btn-sm" onclick="openInvFromPage()">+ Novo</button>
     </div>
   </div>
@@ -709,31 +709,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <!-- CATEGORY -->
     <div class="fg" id="txCatWrap">
       <label>Categoria</label>
-      <select id="txCat">
-        <optgroup label="Gastos">
-          <option value="🍔 Alimentação">🍔 Alimentação</option>
-          <option value="🏠 Moradia">🏠 Moradia</option>
-          <option value="🚗 Transporte">🚗 Transporte</option>
-          <option value="💊 Saúde">💊 Saúde</option>
-          <option value="🎓 Educação">🎓 Educação</option>
-          <option value="🎭 Lazer">🎭 Lazer</option>
-          <option value="👕 Vestuário">👕 Vestuário</option>
-          <option value="💡 Contas Fixas">💡 Contas Fixas</option>
-          <option value="📦 Assinaturas">📦 Assinaturas</option>
-        </optgroup>
-        <optgroup label="Entradas">
-          <option value="💼 Salário">💼 Salário</option>
-          <option value="👨‍👩‍👧 Pensão">👨‍👩‍👧 Pensão</option>
-          <option value="🎁 Presente">🎁 Presente</option>
-          <option value="💹 Rendimento">💹 Rendimento</option>
-        </optgroup>
-        <optgroup label="Outros">
-          <option value="↔️ Transferência">↔️ Transferência</option>
-          <option value="📈 Investimento">📈 Investimento</option>
-          <option value="💸 Retirada">💸 Retirada</option>
-          <option value="💰 Outros">💰 Outros</option>
-        </optgroup>
-      </select>
+      <select id="txCat"></select>
     </div>
 
     <!-- BANK -->
@@ -933,6 +909,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       <input type="date" id="invItemMaturity">
     </div>
 
+    <!-- BANCO DE ORIGEM (descontar saldo) -->
+    <div class="fg" id="invDeductBankWrap" style="display:none">
+      <label>💸 Descontar do banco <span style="color:var(--t3);font-size:9px">opcional</span></label>
+      <select id="invDeductBankSel">
+        <option value="">— Não descontar —</option>
+      </select>
+      <div style="font-size:10px;color:var(--t2);margin-top:5px" id="invDeductBankHint">O valor será debitado do saldo disponível do banco selecionado</div>
+    </div>
+
     <button class="btn-p" onclick="saveInvItem()">Salvar Investimento</button>
     <button class="btn-d" id="btnDelInvItem" style="display:none" onclick="deleteInvItem()">Excluir Investimento</button>
     <button class="btn-g" onclick="closeModal('invItemModal')">Cancelar</button>
@@ -969,6 +954,25 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     </div>
     <button class="btn-p" style="background:var(--purple);color:#fff" onclick="saveInvWithdraw()">💸 Confirmar Saque</button>
     <button class="btn-g" onclick="closeModal('invWithdrawModal')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: INVESTMENT DETAIL ═══ -->
+<div class="modal-ov" id="invDetailModal" onclick="closeBg(event,'invDetailModal')">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div id="invDetailContent"></div>
+    <button class="btn-g" onclick="closeModal('invDetailModal')">Fechar</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: PER-INVESTMENT HISTORY ═══ -->
+<div class="modal-ov" id="invItemHistoryModal" onclick="closeBg(event,'invItemHistoryModal')">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3 id="invItemHistoryTitle">📋 Histórico</h3>
+    <div id="invItemHistoryList" style="max-height:60dvh;overflow-y:auto"></div>
+    <button class="btn-g" onclick="closeModal('invItemHistoryModal')">Fechar</button>
   </div>
 </div>
 
@@ -1607,6 +1611,31 @@ function deleteBank(){
 // ════════════════════════════════════════════════════════
 // TX FORM
 // ════════════════════════════════════════════════════════
+// Category lists keyed by tx type
+const CAT_BY_TYPE = {
+  expense: [
+    '🍔 Alimentação','🏠 Moradia','🚗 Transporte','💊 Saúde',
+    '🎓 Educação','🎭 Lazer','👕 Vestuário','💡 Contas Fixas',
+    '📦 Assinaturas','💰 Outros'
+  ],
+  income: [
+    '💼 Salário','👨‍👩‍👧 Pensão','🤝 Recebimento de Terceiros','🎁 Presente','💹 Rendimento'
+  ],
+  investment:  ['📈 Investimento'],
+  withdrawal:  ['💸 Retirada'],
+  transfer:    ['↔️ Transferência'],
+  cc_payment:  ['💳 Pag. Fatura'],
+};
+
+function _populateCatSelect(txType){
+  const sel = document.getElementById('txCat');
+  const options = CAT_BY_TYPE[txType] || CAT_BY_TYPE.expense;
+  const current = sel.value;
+  sel.innerHTML = options.map(c=>`<option value="${c}">${c}</option>`).join('');
+  // Restore previously-selected value if it's still valid
+  if(options.includes(current)) sel.value = current;
+}
+
 function setTxType(t){
   txType=t;
   const map={E:'expense',I:'income',T:'transfer',V:'investment',W:'withdrawal',P:'cc_payment'};
@@ -1621,8 +1650,13 @@ function setTxType(t){
   if(t==='income') document.getElementById('recurLabel').textContent='🔁 Entrada recorrente (mensal)';
   else document.getElementById('recurLabel').textContent='🔁 Gasto fixo mensal (repetir)';
   if(!showRecur){txRecur=false;document.getElementById('recurTog').classList.remove('on');}
-  // Category visibility
-  document.getElementById('txCatWrap').style.display = (t==='cc_payment'||t==='transfer')?'none':'block';
+  // Category — show only for expense/income; hide + auto-set for others
+  const hideCat = t==='cc_payment'||t==='transfer'||t==='investment'||t==='withdrawal';
+  document.getElementById('txCatWrap').style.display = hideCat ? 'none' : 'block';
+  _populateCatSelect(t);
+  if(t==='investment') document.getElementById('txCat').value='📈 Investimento';
+  if(t==='withdrawal') document.getElementById('txCat').value='💸 Retirada';
+  if(t==='transfer')   document.getElementById('txCat').value='↔️ Transferência';
   // Bank label
   document.getElementById('txBankLabel').textContent = t==='cc_payment'?'Banco de origem (débito)':'Banco';
   // CC pay: populate cc banks
@@ -1783,7 +1817,7 @@ function resetTxForm(){
   document.getElementById('txAmt').value='';
   document.getElementById('txName').value='';
   document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('txCat').value='🍔 Alimentação';
+  _populateCatSelect('expense'); // populate expense categories on reset
   document.getElementById('btnDelTx').style.display='none';
   document.getElementById('recurTog').classList.remove('on');
   document.getElementById('parcelTog').classList.remove('on');
@@ -2277,6 +2311,7 @@ function openAddInvItem(bankId){
   document.getElementById('invItemDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('invItemMaturity').value = '';
   document.getElementById('btnDelInvItem').style.display = 'none';
+  populateInvDeductBankSel(bankId);
   openModal('invItemModal');
   renderInvTypeGrid();
 }
@@ -2296,6 +2331,9 @@ function openEditInvItem(bankId, invId){
   document.getElementById('invItemDate').value = inv.startDate||new Date().toISOString().slice(0,10);
   document.getElementById('invItemMaturity').value = inv.maturity||'';
   document.getElementById('btnDelInvItem').style.display = 'block';
+  // When editing, hide deduct bank (already applied on creation)
+  const dw = document.getElementById('invDeductBankWrap');
+  if(dw) dw.style.display='none';
   openModal('invItemModal');
   renderInvTypeGrid();
 }
@@ -2360,6 +2398,21 @@ function saveInvItem(){
       amount, date: new Date().toISOString().slice(0,10),
       note: 'Aplicação inicial'
     });
+    // Deduct from source bank if selected
+    const deductSel = document.getElementById('invDeductBankSel');
+    const deductBankId = deductSel ? deductSel.value : '';
+    if(deductBankId){
+      const dbIdx = S.banks.findIndex(b=>b.id===deductBankId);
+      if(dbIdx>-1){
+        S.banks[dbIdx].balance = (S.banks[dbIdx].balance||0) - amount;
+        S.invHistory.push({
+          id: uid(), bankId: editingInvItemBankId, invId: newId,
+          invName: name, type: 'deduct',
+          amount, date: new Date().toISOString().slice(0,10),
+          note: `Debitado de ${S.banks[dbIdx].icon} ${S.banks[dbIdx].name}`
+        });
+      }
+    }
     showToast('✅ Investimento adicionado');
   }
   save(); closeModal('invItemModal'); renderHome();
@@ -2372,10 +2425,153 @@ function deleteInvItem(){
   const bkIdx = S.banks.findIndex(b=>b.id===editingInvItemBankId);
   if(bkIdx<0) return;
   S.banks[bkIdx].investments = (S.banks[bkIdx].investments||[]).filter(i=>i.id!==editingInvItemId);
+  // Also remove all history for this investment
+  S.invHistory = S.invHistory.filter(h=>h.invId!==editingInvItemId);
   save(); closeModal('invItemModal'); renderHome();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
   if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
-  showToast('🗑️ Investimento removido');
+  showToast('🗑️ Investimento e histórico removidos');
+}
+
+// ════════════════════════════════════════════════════════
+// INVESTMENT HELPERS: DEDUCT BANK, DETAIL, PER-INV HISTORY
+// ════════════════════════════════════════════════════════
+function populateInvDeductBankSel(invBankId){
+  const wrap = document.getElementById('invDeductBankWrap');
+  const sel = document.getElementById('invDeductBankSel');
+  if(!wrap||!sel) return;
+  sel.innerHTML = '<option value="">— Não descontar —</option>' +
+    S.banks.map(b=>{
+      const liq = bankLiquidBalance(b);
+      return `<option value="${b.id}">${b.icon} ${b.name} (${fmt(liq)})</option>`;
+    }).join('');
+  // Default to the investment bank if it has a balance
+  const bk = S.banks.find(b=>b.id===invBankId);
+  if(bk && (bk.balance||0) > 0) sel.value = invBankId;
+  wrap.style.display = S.banks.length > 0 ? 'block' : 'none';
+}
+
+function openInvDetail(bankId, invId){
+  const bk = S.banks.find(b=>b.id===bankId);
+  const inv = bk ? (bk.investments||[]).find(i=>i.id===invId) : null;
+  if(!inv) return;
+  const typeObj = INV_TYPES.find(t=>t.id===inv.invType)||INV_TYPES[INV_TYPES.length-1];
+  const yieldAmt = inv.yieldAmt||0;
+  const total = (inv.amount||0) + yieldAmt;
+  const rate = inv.rate||0;
+  const startDate = inv.startDate ? new Date(inv.startDate+'T12:00:00') : null;
+  const maturity = inv.maturity ? new Date(inv.maturity+'T12:00:00') : null;
+  const lastD = inv.lastDate && inv.lastDate!=='—' ? new Date(inv.lastDate+'T12:00:00') : null;
+
+  // Next yield prediction: only if rate > 0 and startDate known
+  let nextYieldHtml = '';
+  if(rate > 0 && inv.amount > 0){
+    const monthly = inv.amount * (Math.pow(1 + rate/100, 1/12) - 1);
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth()+1, startDate ? startDate.getDate() : 1);
+    nextYieldHtml = `<div style="background:rgba(93,240,160,.08);border:1px solid rgba(93,240,160,.2);border-radius:12px;padding:13px 15px;margin-bottom:14px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--green);margin-bottom:6px">📅 Próxima Previsão de Rendimento</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:13px;color:var(--t2)">${nextMonth.toLocaleDateString('pt-BR',{day:'2-digit',month:'long'})}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:2px">Base: ${rate}% a.a. → ${(rate/12).toFixed(3)}% a.m.</div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--green)">+${fmt(monthly)}</div>
+      </div>
+    </div>`;
+  }
+
+  // History count for this investment
+  const histCount = S.invHistory.filter(h=>h.invId===invId).length;
+
+  document.getElementById('invDetailContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="width:50px;height:50px;border-radius:14px;background:${typeObj.color}18;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${typeObj.icon}</div>
+      <div style="flex:1">
+        <div style="font-family:'Times New Roman',serif;font-style:italic;font-weight:700;font-size:20px">${inv.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:${typeObj.color}18;color:${typeObj.color}">${typeObj.label}</span>
+          <span style="font-size:11px;color:var(--t2)">${bk?bk.icon+' '+bk.name:''}</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:${typeObj.color}">${fmt(total)}</div>
+        ${yieldAmt>0?`<div style="font-size:10px;color:var(--green)">+${fmt(yieldAmt)} rend.</div>`:''}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px">
+        <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Aplicado</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--blue)">${fmt(inv.amount||0)}</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px">
+        <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Rendimento</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--green)">${yieldAmt>0?fmt(yieldAmt):'—'}</div>
+      </div>
+      ${rate>0?`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px">
+        <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Taxa</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--orange)">${rate}% a.a.</div>
+      </div>`:''}
+      ${startDate?`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px">
+        <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Início</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px">${startDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}</div>
+      </div>`:''}
+      ${maturity?`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px">
+        <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Vencimento</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px">${maturity.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}</div>
+      </div>`:''}
+      ${lastD?`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px">
+        <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Última mov.</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px">${lastD.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</div>
+      </div>`:''}
+    </div>
+    ${nextYieldHtml}
+    <div style="display:flex;gap:7px;margin-bottom:10px">
+      <button onclick="closeModal('invDetailModal');openEditInvItem('${bankId}','${invId}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:8px;padding:10px 6px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
+      <button onclick="closeModal('invDetailModal');openInvWithdraw('${bankId}','${invId}')" style="flex:1;background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.3);border-radius:8px;padding:10px 6px;font-size:12px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸 Sacar</button>
+      <button onclick="closeModal('invDetailModal');openInvItemHistory('${invId}','${inv.name}')" style="flex:1;background:rgba(79,195,247,.07);border:1px solid rgba(79,195,247,.25);border-radius:8px;padding:10px 6px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif">📋 Histórico ${histCount>0?'('+histCount+')':''}</button>
+    </div>
+  `;
+  openModal('invDetailModal');
+}
+
+function openInvItemHistory(invId, invName){
+  document.getElementById('invItemHistoryTitle').textContent = '📋 '+invName;
+  const entries = S.invHistory.filter(h=>h.invId===invId)
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  if(!entries.length){
+    document.getElementById('invItemHistoryList').innerHTML = '<div class="empty"><div class="ei">📋</div><p>Nenhuma movimentação</p></div>';
+    openModal('invItemHistoryModal');
+    return;
+  }
+  const INV_HIST_EXTRA = {
+    deduct: { icon: '💸', label: 'Débito banco', color: 'var(--orange)' }
+  };
+  let html=''; let lastDate='';
+  entries.forEach(h=>{
+    if(h.date!==lastDate){
+      const dd=new Date(h.date+'T12:00:00');
+      html+=`<div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);padding:10px 0 5px">${dd.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</div>`;
+      lastDate=h.date;
+    }
+    const meta = INV_HIST_LABELS[h.type] || INV_HIST_EXTRA[h.type] || INV_HIST_LABELS.update;
+    const bk = S.banks.find(b=>b.id===h.bankId);
+    const sign = (h.type==='withdraw'||h.type==='deduct') ? '−' : '+';
+    const amtColor = (h.type==='withdraw'||h.type==='deduct') ? 'var(--red)' : meta.color;
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
+      <div style="width:38px;height:38px;border-radius:10px;background:${meta.color}18;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${meta.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500">${meta.label}</div>
+        <div style="font-size:10px;color:var(--t2);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          ${bk?`<span>${bk.icon} ${bk.name}</span>`:''}
+          ${h.note?`<span style="color:var(--t3)">${h.note}</span>`:''}
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:${amtColor};flex-shrink:0">${sign} ${fmt(h.amount)}</div>
+    </div>`;
+  });
+  document.getElementById('invItemHistoryList').innerHTML = html;
+  openModal('invItemHistoryModal');
 }
 
 // ════════════════════════════════════════════════════════
@@ -3299,7 +3495,7 @@ function renderInvestmentsPage(){
 
     if(i._source==='legacy') return; // skip legacy
 
-    html += `<div class="inv-card" style="border:1px solid ${typeObj.color}22">
+    html += `<div class="inv-card" style="border:1px solid ${typeObj.color}22;cursor:pointer" onclick="openInvDetail('${i.bankId}','${i.id}')">
       <div class="inv-h">
         <div class="inv-ico" style="background:${typeObj.color}18;font-size:20px">${typeObj.icon}</div>
         <div class="inv-inf">
@@ -3322,9 +3518,10 @@ function renderInvestmentsPage(){
         ${startDate?`<div class="inv-mi"><div class="lbl">Início</div><div class="val">${startDate}</div></div>`:''}
       </div>
       <div style="display:flex;gap:7px">
-        <button onclick="openEditInvItem('${i.bankId}','${i.id}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
-        <button onclick="openInvWithdraw('${i.bankId}','${i.id}')" style="flex:1;background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.3);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸 Sacar</button>
-        <button onclick="confirmDeleteInv('${i.bankId}','${i.id}')" style="flex:0 0 auto;background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">🗑️</button>
+        <button onclick="event.stopPropagation();openEditInvItem('${i.bankId}','${i.id}')" style="flex:1;background:rgba(127,255,110,.07);border:1px solid rgba(127,255,110,.25);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Editar</button>
+        <button onclick="event.stopPropagation();openInvWithdraw('${i.bankId}','${i.id}')" style="flex:1;background:rgba(181,123,238,.08);border:1px solid rgba(181,123,238,.3);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif">💸 Sacar</button>
+        <button onclick="event.stopPropagation();openInvItemHistory('${i.id}','${i.name}')" style="flex:1;background:rgba(79,195,247,.07);border:1px solid rgba(79,195,247,.25);border-radius:8px;padding:8px 6px;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif">📋</button>
+        <button onclick="event.stopPropagation();confirmDeleteInv('${i.bankId}','${i.id}')" style="flex:0 0 auto;background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">🗑️</button>
       </div>
     </div>`;
   });
@@ -3379,21 +3576,13 @@ function doDeleteInv(bankId, invId){
   document.getElementById('choiceModal')?.remove();
   const bkIdx = S.banks.findIndex(b=>b.id===bankId);
   if(bkIdx<0) return;
-  const inv = (S.banks[bkIdx].investments||[]).find(i=>i.id===invId);
-  if(inv){
-    S.invHistory.push({
-      id: uid(), bankId, invId,
-      invName: inv.name, type: 'delete',
-      amount: inv.amount||0,
-      date: new Date().toISOString().slice(0,10),
-      note: 'Investimento excluído'
-    });
-  }
+  // Remove investment and ALL its history entries
   S.banks[bkIdx].investments = (S.banks[bkIdx].investments||[]).filter(i=>i.id!==invId);
+  S.invHistory = S.invHistory.filter(h=>h.invId!==invId);
   save(); renderHome();
   if(document.getElementById('page-investments').classList.contains('on')) renderInvestmentsPage();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
-  showToast('🗑️ Investimento removido');
+  showToast('🗑️ Investimento e histórico removidos');
 }
 
 // ════════════════════════════════════════════════════════
@@ -3474,6 +3663,7 @@ const INV_HIST_LABELS = {
   update:   { icon: '✏️', label: 'Atualização', color: 'var(--blue)'    },
   yield:    { icon: '📈', label: 'Rendimento',  color: 'var(--green)'   },
   delete:   { icon: '🗑️', label: 'Excluído',   color: 'var(--red)'     },
+  deduct:   { icon: '💳', label: 'Débito banco', color: 'var(--orange)' },
 };
 
 let invHistoryTypeFilter = 'all';
