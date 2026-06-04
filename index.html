@@ -149,7 +149,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .tx-item:last-child{border-bottom:none}
 .tx-item:active{opacity:.7}
 .tx-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.ico-expense{background:rgba(255,79,79,.12)}.ico-income{background:rgba(93,240,160,.1)}.ico-transfer{background:rgba(79,195,247,.12)}.ico-investment{background:rgba(127,255,110,.1)}.ico-withdrawal{background:rgba(181,123,238,.12)}.ico-cc_payment{background:rgba(255,179,71,.12)}
+.ico-expense{background:rgba(255,79,79,.12)}.ico-income{background:rgba(93,240,160,.1)}.ico-transfer{background:rgba(79,195,247,.12)}.ico-investment{background:rgba(127,255,110,.1)}.ico-withdrawal{background:rgba(181,123,238,.12)}.ico-cc_payment{background:rgba(255,179,71,.12)}.ico-invoice_autoclose{background:rgba(255,79,79,.15)}
 .tx-inf{flex:1;min-width:0}
 .tx-nm{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tx-meta{font-size:10px;color:var(--t2);margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
@@ -386,6 +386,62 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 /* TOAST */
 .toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:8px 15px;font-size:12px;font-weight:500;opacity:0;transition:all .3s;z-index:400;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* CREDIT CARDS PAGE */
+.ccpage{padding:0 16px 16px}
+.cc-page-header{background:linear-gradient(155deg,#130f22 0%,#0b1020 100%);border:1px solid rgba(255,179,71,.15);border-radius:20px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.cc-page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:150px;height:150px;background:radial-gradient(circle,rgba(255,179,71,.12) 0%,transparent 65%);pointer-events:none}
+.cc-page-total-lbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);margin-bottom:4px}
+.cc-page-total{font-family:'Times New Roman',serif;font-weight:700;font-size:34px;color:var(--orange);letter-spacing:-.5px;line-height:1}
+.cc-page-stats{display:flex;gap:10px;margin-top:12px}
+.cc-page-stat{flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:9px 10px}
+.cc-page-stat-lbl{font-size:8px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.cc-page-stat-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+
+/* CARD TILES */
+.cc-card-tile{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:10px}
+.cc-tile-top{padding:14px 14px 10px;background:linear-gradient(135deg,rgba(255,179,71,.06),rgba(255,179,71,.02));border-bottom:1px solid var(--border)}
+.cc-tile-bank{font-size:9px;color:var(--t2);font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.cc-tile-name{font-size:15px;font-weight:700;margin-bottom:2px}
+.cc-tile-inv{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--orange)}
+.cc-tile-bar-wrap{margin:8px 0 4px}
+.cc-tile-bar-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
+.cc-tile-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+.cc-tile-bar-info{display:flex;justify-content:space-between;font-size:9px;color:var(--t2);margin-top:3px}
+.cc-tile-dates{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-top:1px solid var(--border)}
+.cc-tile-date-cell{padding:9px 12px;border-right:1px solid var(--border);text-align:center}
+.cc-tile-date-cell:last-child{border-right:none}
+.cc-tile-date-lbl{font-size:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.cc-tile-date-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:600}
+.cc-tile-actions{display:flex;border-top:1px solid var(--border)}
+.cc-tile-btn{flex:1;background:none;border:none;border-right:1px solid var(--border);padding:11px 6px;font-size:11px;font-weight:600;cursor:pointer;color:var(--t2);font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px}
+.cc-tile-btn:last-child{border-right:none}
+.cc-tile-btn:active{background:var(--s2)}
+.cc-tile-btn.orange{color:var(--orange)}
+.cc-tile-btn.green{color:var(--green)}
+.cc-tile-status{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--s2);font-size:9px;font-weight:600}
+
+/* FUTURE INVOICES */
+.future-invoices{margin-top:6px}
+.future-inv-title{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);padding:10px 0 6px}
+.future-inv-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:6px}
+.future-inv-month{font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);min-width:48px}
+.future-inv-items{flex:1;font-size:11px;color:var(--text)}
+.future-inv-amt{font-family:'DM Mono',monospace;font-size:13px;color:var(--orange);font-weight:500}
+
+/* INVOICE CLOSE BANNER */
+.inv-close-banner{background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.2);border-radius:10px;padding:11px 13px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.inv-close-banner.warn{background:rgba(255,179,71,.07);border-color:rgba(255,179,71,.2)}
+.inv-close-banner-ico{font-size:18px;flex-shrink:0}
+.inv-close-banner-inf{flex:1}
+.inv-close-banner-title{font-size:12px;font-weight:700;margin-bottom:1px}
+.inv-close-banner-sub{font-size:10px;color:var(--t2)}
+
+/* PARTIAL PAYMENT DEDUCT TOGGLE */
+.pay-deduct-wrap{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pay-deduct-info{flex:1}
+.pay-deduct-title{font-size:13px;color:var(--text);font-weight:500}
+.pay-deduct-sub{font-size:10px;color:var(--t2);margin-top:2px}
 </style>
 </head>
 <body>
@@ -608,12 +664,24 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
   </div>
 </div>
 
+<!-- PAGE: CREDIT CARDS -->
+<div id="page-cards" class="page">
+  <div class="stitle" style="padding-top:16px">
+    <h2>Cartões de Crédito</h2>
+    <button class="btn-sm" onclick="openAddCardFromPage()">+ Cartão</button>
+  </div>
+  <div class="ccpage" id="ccPageContent">
+    <div class="empty"><div class="ei">💳</div><p>Nenhum cartão cadastrado</p></div>
+  </div>
+</div>
+
 </div><!-- #app -->
 
 <!-- BOTTOM NAV -->
 <div class="bnav">
   <button class="ni on" onclick="switchPage('home',this)"><span class="ni-icon">🏠</span><span class="ni-lbl">Início</span></button>
   <button class="ni" onclick="switchPage('analytics',this)"><span class="ni-icon">📊</span><span class="ni-lbl">Análise</span></button>
+  <button class="ni" onclick="switchPage('cards',this)"><span class="ni-icon">💳</span><span class="ni-lbl">Cartões</span></button>
   <button class="ni" onclick="switchPage('banks',this)"><span class="ni-icon">🏦</span><span class="ni-lbl">Bancos</span></button>
   <button class="ni" onclick="switchPage('investments',this)"><span class="ni-icon">📈</span><span class="ni-lbl">Invest.</span></button>
   <button class="ni" onclick="openModal('txModal')"><span class="ni-icon">＋</span><span class="ni-lbl">Lançar</span></button>
@@ -706,6 +774,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       <div id="txPayMethodInfo" class="info-box" style="display:none;margin-top:6px"></div>
     </div>
 
+    <!-- CARD SELECT (shown when payment method = card for expenses) -->
+    <div class="fg" id="txDirectCardWrap" style="display:none">
+      <label>Cartão de Crédito</label>
+      <select id="txDirectCard" onchange="onDirectCardChange()"></select>
+      <div id="txDirectCardInfo" class="info-box" style="display:none;margin-top:6px"></div>
+    </div>
+
     <!-- CATEGORY -->
     <div class="fg" id="txCatWrap">
       <label>Categoria</label>
@@ -713,12 +788,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     </div>
 
     <!-- BANK -->
-    <div class="fg">
+    <div class="fg" id="txBankWrap">
       <label id="txBankLabel">Banco</label>
       <select id="txBank" onchange="onTxBankChange()"></select>
     </div>
 
-    <!-- CC CARD SELECT (shown when expense on bank with CC cards) -->
+    <!-- CC CARD SELECT (shown when expense on bank with CC cards) — kept for legacy -->
     <div id="txCCCardWrap" style="display:none">
       <div class="fg">
         <label>Cartão de Crédito</label>
@@ -995,9 +1070,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <div id="invDetInfo" style="font-size:10px;color:var(--t2);margin-bottom:12px"></div>
     <div id="invDetItems"></div>
     <div class="inv-pay-section">
-      <div class="inv-pay-title">Pagamentos</div>
+      <div class="inv-pay-title">Pagamentos Anteriores</div>
       <div class="inv-pay-status" id="invDetPayStatus"></div>
-      <div class="inv-pay-title" style="margin-top:10px">Registrar Pagamento</div>
+      <div class="inv-pay-title" style="margin-top:10px">Pagamento Parcial / Abatimento</div>
+      <div class="info-box" style="margin-bottom:8px;background:rgba(255,179,71,.06);border-color:rgba(255,179,71,.2)">💡 Use para pagar um valor e diminuir o saldo do cartão. O pagamento total da fatura no fechamento é automático.</div>
       <div class="fg" style="margin-bottom:8px">
         <label>Banco de Origem</label>
         <select id="invDetPayBank"></select>
@@ -1005,6 +1081,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
       <div class="partial-input-wrap">
         <input type="number" id="invDetPayAmt" placeholder="Valor a pagar (R$)" inputmode="decimal" step="0.01">
         <button class="bk-sub-btn orange" style="flex:0;white-space:nowrap;padding:10px 12px" onclick="setFullPayment()">Total</button>
+      </div>
+      <div class="pay-deduct-wrap" id="partialPayDeductWrap">
+        <div class="pay-deduct-info">
+          <div class="pay-deduct-title">💰 Descontar do saldo da conta</div>
+          <div class="pay-deduct-sub" id="partialPayDeductSub">Ative se o dinheiro sairá da sua conta</div>
+        </div>
+        <button class="tog" id="partialPayDeductTog" onclick="togglePartialPayDeduct()"></button>
       </div>
       <button class="btn-p" style="background:var(--orange);color:#0b0d10" onclick="saveInvoicePayment()">💳 Registrar Pagamento</button>
     </div>
@@ -1084,7 +1167,7 @@ const INV_TYPES = [
 
 // Estado do tipo selecionado no modal de investimento
 let selectedInvType = 'cdb';
-const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸',cc_payment:'💳'};
+const TYPE_ICONS = {expense:'⬇️',income:'⬆️',transfer:'↔️',investment:'📈',withdrawal:'💸',cc_payment:'💳',invoice_autoclose:'🔒'};
 
 // ════════════════════════════════════════════════════════
 // STORAGE
@@ -1403,6 +1486,10 @@ function setPayMethod(method){
   payMethod = method;
   document.getElementById('payBtnCard').className = 'pay-btn' + (method==='card'?' sel-card':'');
   document.getElementById('payBtnCash').className = 'pay-btn' + (method==='cash'?' sel-cash':'');
+  // Bank field: hide for expense+card (bank derived from card), show otherwise
+  const bankWrap = document.getElementById('txBankWrap');
+  if(bankWrap) bankWrap.style.display = (txType==='expense' && method==='card') ? 'none' : 'block';
+  updateDirectCardWrap();
   updatePayMethodInfo();
   updateParcelWrap();
   onTxBankChange();
@@ -1436,7 +1523,183 @@ function updatePayMethodInfo(){
   }
 }
 
-// ── FORECAST LOGIC ────────────────────────────────────
+// ── DIRECT CARD SELECTOR (expense + card method) ──────
+function getAllCreditCards(){
+  const result = [];
+  S.banks.forEach(bk=>{
+    (bk.creditCards||[]).forEach(card=>{
+      result.push({bk, card});
+    });
+    if(bk.hasCC && !(bk.creditCards||[]).length){
+      result.push({bk, card:null});
+    }
+  });
+  return result;
+}
+
+function updateDirectCardWrap(){
+  const wrap = document.getElementById('txDirectCardWrap');
+  if(!wrap) return;
+  const show = txType==='expense' && payMethod==='card';
+  wrap.style.display = show ? 'block' : 'none';
+  if(show) populateDirectCardSelect();
+}
+
+function populateDirectCardSelect(){
+  const sel = document.getElementById('txDirectCard');
+  const allCards = getAllCreditCards();
+  sel.innerHTML = '<option value="">— Selecione o cartão —</option>' +
+    allCards.map(({bk,card})=>{
+      const name = card ? card.name : (bk.name+' (cartão)');
+      const val = card ? bk.id+'|'+card.id : bk.id+'|';
+      const inv = card ? computeCardInvoice(bk.id,card.id) : computeCCInvoice(bk.id);
+      return `<option value="${val}">${bk.icon} ${bk.name} — ${name} (${fmt(inv)})</option>`;
+    }).join('');
+  // If only 1 card auto-select
+  if(allCards.length===1){
+    const {bk,card} = allCards[0];
+    sel.value = card ? bk.id+'|'+card.id : bk.id+'|';
+  }
+  onDirectCardChange();
+}
+
+function onDirectCardChange(){
+  const sel = document.getElementById('txDirectCard');
+  const infoEl = document.getElementById('txDirectCardInfo');
+  const val = sel.value;
+  if(!val){ if(infoEl) infoEl.style.display='none'; return; }
+  const [bkId, cardId] = val.split('|');
+  const bk = S.banks.find(b=>b.id===bkId);
+  const card = bk&&cardId ? (bk.creditCards||[]).find(c=>c.id===cardId) : null;
+  // Sync hidden txBank field so existing saveTx logic works
+  document.getElementById('txBank').value = bkId;
+  // Sync txCCCardSelect
+  const legacySel = document.getElementById('txCCCardSelect');
+  if(legacySel && cardId){
+    // rebuild options if needed
+    if(!legacySel.querySelector(`option[value="${cardId}"]`)){
+      populateCCCardSelect(bkId);
+    }
+    legacySel.value = cardId;
+  }
+  if(card && infoEl){
+    const date = document.getElementById('txDate').value;
+    const d = new Date(date+'T12:00:00');
+    const goesNext = d.getDate() >= card.closeDay;
+    infoEl.style.display='block';
+    const closeDate = getCardCloseDate(card, bk);
+    const closeDateStr = closeDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+    const inv = computeCardInvoice(bkId, cardId);
+    if(goesNext){
+      let nm=d.getMonth()+1; let ny=d.getFullYear();
+      if(nm>11){nm=0;ny++;}
+      infoEl.textContent=`⚠️ Após fechamento (dia ${card.closeDay}). Vai para fatura de ${MONTHS[nm]}. Fatura atual: ${fmt(inv)}`;
+      infoEl.style.background='rgba(255,179,71,.08)';
+      infoEl.style.borderColor='rgba(255,179,71,.3)';
+    } else {
+      infoEl.textContent=`✅ Fatura atual: ${fmt(inv)} · Fecha ${closeDateStr} (dia ${card.closeDay})`;
+      infoEl.style.background='rgba(127,255,110,.06)';
+      infoEl.style.borderColor='rgba(127,255,110,.2)';
+    }
+  } else if(infoEl){
+    infoEl.style.display='none';
+  }
+  updateParcelWrap();
+}
+
+// Partial payment deduct toggle
+let partialPayDeduct = false;
+function togglePartialPayDeduct(){
+  partialPayDeduct = !partialPayDeduct;
+  const tog = document.getElementById('partialPayDeductTog');
+  const sub = document.getElementById('partialPayDeductSub');
+  if(tog) tog.classList.toggle('on', partialPayDeduct);
+  if(sub) sub.textContent = partialPayDeduct
+    ? '✅ O valor será debitado do saldo da conta selecionada'
+    : 'Desativado — não desconta do saldo (ex: dinheiro recebido para abater)';
+}
+
+// ── INVOICE AUTO-CLOSE CHECK ──────────────────────────
+// Verifica se algum cartão fechou fatura hoje e gera o lançamento automático
+function checkInvoiceAutoClose(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().slice(0,10);
+  const todayKey = mkey(today.getFullYear(), today.getMonth()+1);
+
+  S.banks.forEach(bk=>{
+    const cards = bk.creditCards||[];
+    const processCard = (card)=>{
+      const closeDay = card ? card.closeDay : (bk.ccCloseDay||15);
+      const closeMonth = card ? card.closeMonth : null;
+      // Build the close date for the CURRENT cycle
+      // We need to find if today IS the close date
+      let closeDate = getCardCloseDate(card, bk);
+      // getCardCloseDate returns the NEXT close date >= today
+      // If today == that date, this invoice closes today
+      if(closeDate.getTime() !== today.getTime()) return;
+
+      // Check if auto-close tx already exists for this card on this date
+      const cardId = card ? card.id : null;
+      const alreadyClosed = S.transactions.some(t=>
+        t.type==='invoice_autoclose' &&
+        t.ccBankId===bk.id &&
+        (cardId ? t.creditCardId===cardId : !t.creditCardId) &&
+        t.date===todayStr
+      );
+      if(alreadyClosed) return;
+
+      // Compute the invoice total
+      const inv = cardId ? computeCardInvoice(bk.id, cardId) : computeCCInvoice(bk.id);
+      if(inv <= 0) return;
+
+      const cardName = card ? card.name : (bk.name+' (cartão)');
+
+      // Create auto-close transaction: debits from bank balance
+      S.transactions.push({
+        id: uid(),
+        type: 'invoice_autoclose',
+        name: `Fatura fechada — ${cardName}`,
+        amount: inv,
+        category: '💳 Fatura Fechada',
+        bankId: bk.id,
+        bankToId: '',
+        ccBankId: bk.id,
+        creditCardId: cardId,
+        date: todayStr,
+        month: todayKey,
+        recurrent: false,
+        autoClose: true
+      });
+      // Also register a cc_payment to zero the invoice so the new cycle starts at 0
+      S.transactions.push({
+        id: uid(),
+        type: 'cc_payment',
+        name: `Pagamento automático fatura — ${cardName}`,
+        amount: inv,
+        category: '💳 Pagamento Fatura',
+        bankId: bk.id,
+        bankToId: '',
+        ccBankId: bk.id,
+        creditCardId: cardId,
+        date: todayStr,
+        month: todayKey,
+        recurrent: false,
+        autoClose: true
+      });
+      // Debit from bank balance (the money goes out of the account)
+      bk.balance = (bk.balance||0) - inv;
+
+      showToast(`🔒 Fatura ${cardName} fechada: −${fmt(inv)}`);
+    };
+
+    if(cards.length>0){
+      cards.forEach(c=>processCard(c));
+    } else if(bk.hasCC){
+      processCard(null);
+    }
+  });
+  save();
+}
 // Qualquer lançamento com data futura é "previsão"
 // O saldo desconta normalmente, mas é sinalizado como previsão na interface
 function isForecast(tx){
@@ -1477,6 +1740,7 @@ function switchPage(name, el){
   if(name==='analytics') renderAnalytics();
   if(name==='banks') renderBanksPage();
   if(name==='investments') renderInvestmentsPage();
+  if(name==='cards') renderCardsPage();
   if(name==='home') renderHome();
 }
 
@@ -1524,6 +1788,7 @@ function openModal(id){
     resetTxForm();
     populateBankSelects();
     populateNameSugg();
+    populateDirectCardSelect();
     if(S.banks.length){
       document.getElementById('txBank').value=S.banks[0].id;
       onTxBankChange();
@@ -1667,6 +1932,11 @@ function setTxType(t){
   // CC card select: hide when not expense
   const ccCardWrap = document.getElementById('txCCCardWrap');
   if(ccCardWrap && t!=='expense') ccCardWrap.style.display='none';
+  // Direct card selector: only for expense + card method
+  updateDirectCardWrap();
+  // Bank field: hide for expense+card (bank derived from card), show otherwise
+  const bankWrap = document.getElementById('txBankWrap');
+  if(bankWrap) bankWrap.style.display = (t==='expense' && payMethod==='card') ? 'none' : 'block';
   // Investment deduct toggle: only for investment type
   const invDeductWrap = document.getElementById('txInvDeductWrap');
   if(invDeductWrap) invDeductWrap.style.display = t==='investment' ? 'block' : 'none';
@@ -1843,6 +2113,12 @@ function resetTxForm(){
   if(pmWrap) pmWrap.style.display='block';
   const pmInfo = document.getElementById('txPayMethodInfo');
   if(pmInfo) pmInfo.style.display='none';
+  // Direct card wrap: show for expense+card (default)
+  const dcWrap = document.getElementById('txDirectCardWrap');
+  if(dcWrap) dcWrap.style.display='block';
+  // Bank wrap: hide for expense+card (default)
+  const bkWrap = document.getElementById('txBankWrap');
+  if(bkWrap) bkWrap.style.display='none';
   setTxType('expense');
 }
 
@@ -1920,11 +2196,25 @@ function saveTx(){
   const amount=parseFloat(document.getElementById('txAmt').value);
   const name=document.getElementById('txName').value.trim();
   const category=document.getElementById('txCat').value;
-  const bankId=document.getElementById('txBank').value;
+  let bankId=document.getElementById('txBank').value;
   const date=document.getElementById('txDate').value;
 
+  // For expense+card, extract bankId from direct card selector
+  let directCardId = null;
+  if(txType==='expense' && payMethod==='card'){
+    const dcSel = document.getElementById('txDirectCard');
+    const dcVal = dcSel ? dcSel.value : '';
+    if(dcVal){
+      const parts = dcVal.split('|');
+      bankId = parts[0];
+      directCardId = parts[1] || null;
+      document.getElementById('txBank').value = bankId;
+    }
+  }
+
   if(!amount||amount<=0||!name){showToast('⚠️ Preencha nome e valor');return;}
-  if(!bankId&&txType!=='cc_payment'){showToast('⚠️ Selecione um banco');return;}
+  if(!bankId&&txType!=='cc_payment'){showToast('⚠️ Selecione um banco / cartão');return;}
+  if(txType==='expense'&&payMethod==='card'&&!bankId){showToast('⚠️ Selecione o cartão');return;}
 
   const d = new Date(date+'T12:00:00');
 
@@ -1963,7 +2253,7 @@ function saveTx(){
     const group=uid();
     const bk = S.banks.find(b=>b.id===bankId);
     const hasCards = bk && bk.creditCards && bk.creditCards.length>0;
-    const parcelCardId = hasCards ? (document.getElementById('txCCCardSelect').value||null) : null;
+    const parcelCardId = directCardId || (hasCards ? (document.getElementById('txCCCardSelect').value||null) : null);
     const parcelCard = parcelCardId && bk ? bk.creditCards.find(c=>c.id===parcelCardId) : null;
     const closeDay = parcelCard ? parcelCard.closeDay : (bk&&bk.ccCloseDay ? bk.ccCloseDay : 15);
     for(let i=0;i<qtd;i++){
@@ -2012,7 +2302,12 @@ function saveTx(){
     if(txType==='expense' && effPayMethod==='card' && bankId){
       const bkForCC = S.banks.find(b=>b.id===bankId);
       const hasCards = bkForCC && bkForCC.creditCards && bkForCC.creditCards.length>0;
-      if(hasCards){
+      // Prefer directCardId if set
+      if(directCardId){
+        creditCardId = directCardId;
+        const card = bkForCC ? bkForCC.creditCards.find(c=>c.id===directCardId) : null;
+        ccInvoiceMonth = ccExpenseInvoiceMonth({date, payMethod:'card'}, bkForCC, card);
+      } else if(hasCards){
         creditCardId = document.getElementById('txCCCardSelect').value || null;
         const card = creditCardId ? bkForCC.creditCards.find(c=>c.id===creditCardId) : null;
         ccInvoiceMonth = ccExpenseInvoiceMonth({date, payMethod:'card'}, bkForCC, card);
@@ -2261,6 +2556,7 @@ function saveCCCard(){
   }
   save(); closeModal('ccCardModal'); renderHome();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  if(document.getElementById('page-cards').classList.contains('on')) renderCardsPage();
 }
 
 function deleteCCCard(){
@@ -2271,6 +2567,7 @@ function deleteCCCard(){
   S.transactions = S.transactions.filter(t=>!(t.creditCardId===editingCCCardId));
   save(); closeModal('ccCardModal'); renderHome();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  if(document.getElementById('page-cards').classList.contains('on')) renderCardsPage();
   showToast('🗑️ Cartão removido');
 }
 
@@ -2587,8 +2884,13 @@ function openInvoiceDetail(bankId, cardId){
   const dueDay = card ? card.dueDay : (bk&&bk.ccDueDay||5);
 
   document.getElementById('invDetTitle').textContent = '💳 '+cardName;
-  const isClosed = isCardInvoiceClosed(null, card, bk);
-  const closeDate = getCardCloseDate(card, bk);
+  // Reset deduct toggle
+  partialPayDeduct = false;
+  const pdTog = document.getElementById('partialPayDeductTog');
+  const pdSub = document.getElementById('partialPayDeductSub');
+  if(pdTog) pdTog.classList.remove('on');
+  if(pdSub) pdSub.textContent = 'Desativado — não desconta do saldo (ex: dinheiro recebido para abater)';
+  const isClosed = isCardInvoiceClosed(null, card, bk);  const closeDate = getCardCloseDate(card, bk);
   const closeDateStr = closeDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
   const statusStr = isClosed
     ? `🔒 Fatura FECHADA — gasto real · Vence dia ${dueDay}`
@@ -2678,17 +2980,26 @@ function saveInvoicePayment(){
   const card = bk ? (bk.creditCards||[]).find(c=>c.id===currentInvoiceCardId) : null;
   S.transactions.push({
     id:uid(), type:'cc_payment',
-    name:'Pagamento fatura '+(card?card.name:(bk?bk.name:'')),
+    name:'Pagamento parcial '+(card?card.name:(bk?bk.name:'')),
     amount, category:'💳 Pagamento Fatura',
     bankId, bankToId:'', ccBankId:currentInvoiceBankId,
     creditCardId: currentInvoiceCardId||null,
-    date, month:k, recurrent:false
+    date, month:k, recurrent:false,
+    deductFromBank: partialPayDeduct
   });
+  // If deduct toggle is ON, actually debit from the source bank
+  if(partialPayDeduct){
+    const srcBkIdx = S.banks.findIndex(b=>b.id===bankId);
+    if(srcBkIdx>-1){
+      S.banks[srcBkIdx].balance = (S.banks[srcBkIdx].balance||0) - amount;
+    }
+  }
   save();
-  showToast('✅ Pagamento registrado');
+  showToast('✅ Pagamento registrado'+(partialPayDeduct?' · Saldo debitado':''));
   renderInvoiceDetailItems(currentInvoiceBankId, currentInvoiceCardId);
   renderHome();
   if(document.getElementById('page-bankdetail').classList.contains('on')) renderBankDetail();
+  if(document.getElementById('page-cards').classList.contains('on')) renderCardsPage();
 }
 
 function openInvTx(){
@@ -2845,6 +3156,8 @@ function renderHome(){
   renderCCPanel();
   renderBanksScroll();
   renderTxList(allTxs, 'txList');
+  // Refresh cards page if active
+  if(document.getElementById('page-cards').classList.contains('on')) renderCardsPage();
 }
 
 function renderNWBar(){
@@ -3136,14 +3449,29 @@ function openTxForBankType(bankId, type){
   if(type==='expense_card'){
     setTxType('expense');
     setPayMethod('card');
+    setTimeout(()=>{
+      populateDirectCardSelect();
+      // Try to pre-select a card from this bank
+      const dcSel = document.getElementById('txDirectCard');
+      if(dcSel){
+        const bk = S.banks.find(b=>b.id===bankId);
+        const cards = bk ? (bk.creditCards||[]) : [];
+        if(cards.length>0){
+          dcSel.value = bankId+'|'+cards[0].id;
+        } else if(bk&&bk.hasCC){
+          dcSel.value = bankId+'|';
+        }
+        onDirectCardChange();
+      }
+    },50);
   } else {
     setTxType(type);
     if(type==='expense') setPayMethod('cash');
+    setTimeout(()=>{
+      document.getElementById('txBank').value = bankId;
+      onTxBankChange();
+    },50);
   }
-  setTimeout(()=>{
-    document.getElementById('txBank').value = bankId;
-    onTxBankChange();
-  },50);
   openModal('txModal');
 }
 
@@ -3154,13 +3482,13 @@ function openTxForBankCard(bankId, cardId){
   setTxType('expense');
   setPayMethod('card');
   setTimeout(()=>{
-    document.getElementById('txBank').value = bankId;
-    onTxBankChange();
-    setTimeout(()=>{
-      const sel = document.getElementById('txCCCardSelect');
-      if(sel) sel.value = cardId;
-      updateCCCardInfo();
-    },30);
+    // Use direct card selector
+    populateDirectCardSelect();
+    const dcSel = document.getElementById('txDirectCard');
+    if(dcSel && cardId){
+      dcSel.value = bankId+'|'+cardId;
+      onDirectCardChange();
+    }
   },50);
   openModal('txModal');
 }
@@ -3194,8 +3522,8 @@ function renderTxList(txs, containerId){
     const bkTo=t.bankToId?S.banks.find(b=>b.id===t.bankToId):null;
     const bkCC=t.ccBankId?S.banks.find(b=>b.id===t.ccBankId):null;
     const catEmoji=t.category?t.category.split(' ')[0]:'';
-    const sign={expense:'−',income:'+',transfer:'↔',investment:'↗',withdrawal:'↙',cc_payment:'💳'}[t.type]||'';
-    const cls={expense:'tv-neg',income:'tv-pos',transfer:'tv-neu',investment:'tv-inv',withdrawal:'tv-neu',cc_payment:'tv-ora'}[t.type]||'';
+    const sign={expense:'−',income:'+',transfer:'↔',investment:'↗',withdrawal:'↙',cc_payment:'💳',invoice_autoclose:'🔒'}[t.type]||'';
+    const cls={expense:'tv-neg',income:'tv-pos',transfer:'tv-neu',investment:'tv-inv',withdrawal:'tv-neu',cc_payment:'tv-ora',invoice_autoclose:'tv-neg'}[t.type]||'';
     const parcelTag=t.parcelGroup?`<span class="tag-parcel">Parcela ${t.parcelIndex}/${t.parcelTotal}</span>`:'';
     const recurTag=t.recurrent?'<span class="tag-recur">🔁</span>':'';
     // Qualquer lançamento com data futura é previsão
@@ -3720,6 +4048,177 @@ function renderInvHistoryModal(){
 }
 
 // ════════════════════════════════════════════════════════
+// RENDER: CARDS PAGE
+// ════════════════════════════════════════════════════════
+function renderCardsPage(){
+  checkInvoiceAutoClose();
+  const el = document.getElementById('ccPageContent');
+  const allCards = getAllCreditCards();
+
+  if(!allCards.length){
+    el.innerHTML = `<div class="empty"><div class="ei">💳</div><p>Nenhum cartão cadastrado.<br>Adicione um banco com cartão de crédito.</p></div>`;
+    return;
+  }
+
+  // Compute totals
+  const totalFatura = allCards.reduce((s,{bk,card})=>s+computeCardInvoiceForCard(bk,card),0);
+  const closedTotal = allCards.reduce((s,{bk,card})=>{
+    const cardObj = card||null;
+    const isCl = isCardInvoiceClosed(null, cardObj, bk);
+    return s + (isCl ? computeCardInvoiceForCard(bk,card) : 0);
+  },0);
+  const openTotal = totalFatura - closedTotal;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let html = `<div class="cc-page-header">
+    <div class="cc-page-total-lbl">Total em Faturas</div>
+    <div class="cc-page-total">${fmt(totalFatura)}</div>
+    <div class="cc-page-stats">
+      <div class="cc-page-stat">
+        <div class="cc-page-stat-lbl">Fechadas</div>
+        <div class="cc-page-stat-val" style="color:var(--red)">${fmt(closedTotal)}</div>
+      </div>
+      <div class="cc-page-stat">
+        <div class="cc-page-stat-lbl">Abertas</div>
+        <div class="cc-page-stat-val" style="color:var(--orange)">${fmt(openTotal)}</div>
+      </div>
+      <div class="cc-page-stat">
+        <div class="cc-page-stat-lbl">Cartões</div>
+        <div class="cc-page-stat-val" style="color:var(--blue)">${allCards.length}</div>
+      </div>
+    </div>
+  </div>`;
+
+  allCards.forEach(({bk, card})=>{
+    const cardName = card ? card.name : (bk.name+' (cartão)');
+    const closeDay = card ? card.closeDay : (bk.ccCloseDay||15);
+    const dueDay = card ? card.dueDay : (bk.ccDueDay||5);
+    const limit = card ? card.limit : (bk.ccLimit||0);
+    const inv = computeCardInvoiceForCard(bk, card);
+    const cardId = card ? card.id : null;
+    const isClosed = isCardInvoiceClosed(null, card, bk);
+    const closeDate = getCardCloseDate(card, bk);
+    const closeDateStr = closeDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+    const daysToClose = Math.round((closeDate-today)/(86400000));
+    const pct = limit>0 ? Math.min(100,Math.round(inv/limit*100)) : 0;
+    const barColor = pct>80?'var(--red)':pct>60?'var(--orange)':'var(--blue)';
+    const statusColor = isClosed ? 'var(--red)' : (daysToClose<=3 ? 'var(--red)' : daysToClose<=7 ? 'var(--orange)' : 'var(--green)');
+    const statusIcon = isClosed ? '🔒' : (daysToClose<=3 ? '⚠️' : '⏳');
+    const statusText = isClosed
+      ? `Fatura FECHADA — descontada do saldo`
+      : `Aberta · fecha ${closeDateStr} (${daysToClose}d)`;
+
+    // Compute future invoices (next 3 months of planned expenses)
+    const futureTxs = S.transactions.filter(t=>{
+      if(t.type!=='expense') return false;
+      if(t.bankId!==bk.id) return false;
+      if(t.payMethod!=='card' && t.payMethod) return false;
+      if(cardId){
+        if(t.creditCardId && t.creditCardId!==cardId) return false;
+        if(!t.creditCardId && (bk.creditCards||[]).length>1) return false;
+      }
+      const txDate = new Date(t.date+'T00:00:00');
+      return txDate > today;
+    });
+    const futureByMonth = {};
+    futureTxs.forEach(t=>{
+      const k = t.month||mkey(new Date(t.date+'T00:00:00').getFullYear(), new Date(t.date+'T00:00:00').getMonth()+1);
+      if(!futureByMonth[k]) futureByMonth[k]={total:0,count:0};
+      futureByMonth[k].total += t.amount;
+      futureByMonth[k].count++;
+    });
+    let futureHtml = '';
+    const futureKeys = Object.keys(futureByMonth).sort().slice(0,4);
+    if(futureKeys.length){
+      futureHtml = `<div class="future-invoices">
+        <div class="future-inv-title">Faturas Futuras Previstas</div>`;
+      futureKeys.forEach(k=>{
+        const [y,m] = k.split('-');
+        const monthName = MONTHS[parseInt(m)-1];
+        const {total,count} = futureByMonth[k];
+        futureHtml += `<div class="future-inv-row">
+          <div class="future-inv-month">${monthName.slice(0,3)}</div>
+          <div class="future-inv-items">${count} compra${count!==1?'s':''}</div>
+          <div class="future-inv-amt">${fmt(total)}</div>
+        </div>`;
+      });
+      futureHtml += `</div>`;
+    }
+
+    const onClickDetail = cardId ? `openInvoiceDetail('${bk.id}','${cardId}')` : `openBankDetail('${bk.id}')`;
+    const onClickExpense = cardId ? `openTxForBankCard('${bk.id}','${cardId}')` : `openTxForBankType('${bk.id}','expense_card')`;
+    const onClickEdit = cardId ? `openEditCCCard('${bk.id}','${cardId}')` : `openEditBank('${bk.id}')`;
+
+    html += `<div class="cc-card-tile">
+      <div class="cc-tile-top">
+        <div class="cc-tile-bank">${bk.icon} ${bk.name}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div class="cc-tile-name">💳 ${cardName}</div>
+            <div class="cc-tile-inv">${fmt(inv)}</div>
+          </div>
+          <div style="text-align:right">
+            ${limit>0?`<div style="font-size:9px;color:var(--t2)">de ${fmt(limit)}</div>`:''}
+            ${limit>0?`<div style="font-size:9px;color:var(--green);margin-top:1px">Disponível ${fmt(Math.max(0,limit-inv))}</div>`:''}
+          </div>
+        </div>
+        ${limit>0?`<div class="cc-tile-bar-wrap">
+          <div class="cc-tile-bar-track"><div class="cc-tile-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          <div class="cc-tile-bar-info"><span>0%</span><span style="color:${barColor}">${pct}% usado</span><span>100%</span></div>
+        </div>`:''}
+      </div>
+      <div class="cc-tile-status">
+        <span style="color:${statusColor}">${statusIcon} ${statusText}</span>
+        ${isClosed?`<span style="font-size:9px;background:rgba(255,79,79,.12);color:var(--red);padding:2px 7px;border-radius:10px">Aguardando pag.</span>`:''}
+      </div>
+      <div class="cc-tile-dates">
+        <div class="cc-tile-date-cell">
+          <div class="cc-tile-date-lbl">Fecha</div>
+          <div class="cc-tile-date-val" style="color:var(--orange)">Dia ${closeDay}</div>
+        </div>
+        <div class="cc-tile-date-cell">
+          <div class="cc-tile-date-lbl">Vence</div>
+          <div class="cc-tile-date-val" style="color:var(--blue)">Dia ${dueDay}</div>
+        </div>
+        <div class="cc-tile-date-cell">
+          <div class="cc-tile-date-lbl">Próx. fecha</div>
+          <div class="cc-tile-date-val" style="color:${statusColor}">${closeDateStr}</div>
+        </div>
+      </div>
+      ${futureHtml}
+      <div class="cc-tile-actions">
+        <button class="cc-tile-btn" onclick="${onClickDetail}">🧾 Fatura</button>
+        <button class="cc-tile-btn orange" onclick="${onClickExpense}">+ Gasto</button>
+        <button class="cc-tile-btn green" onclick="${onClickDetail}">💳 Pagar</button>
+        <button class="cc-tile-btn" onclick="${onClickEdit}">✏️</button>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function computeCardInvoiceForCard(bk, card){
+  return card ? computeCardInvoice(bk.id, card.id) : computeCCInvoice(bk.id);
+}
+
+function openAddCardFromPage(){
+  if(!S.banks.length){showToast('⚠️ Adicione um banco primeiro');return;}
+  if(S.banks.length===1){openAddCCCard(S.banks[0].id);return;}
+  const d=document.createElement('div');
+  d.id='choiceModal';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:flex-end';
+  const opts=S.banks.map(b=>`<button onclick="document.getElementById('choiceModal').remove();openAddCCCard('${b.id}')" style="width:100%;display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;margin-bottom:7px"><span style="font-size:20px">${b.icon}</span>${b.name}</button>`).join('');
+  d.innerHTML=`<div style="background:#13161d;border-radius:20px 20px 0 0;border:1px solid #252b3a;border-bottom:none;width:100%;padding:20px 18px calc(20px + env(safe-area-inset-bottom))">
+    <div style="width:34px;height:3px;background:#2f374a;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:18px;font-weight:700;margin-bottom:16px">Adicionar cartão a qual banco?</div>
+    ${opts}
+    <button onclick="document.getElementById('choiceModal').remove()" style="width:100%;background:none;border:none;color:#7a8599;padding:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px">Cancelar</button>
+  </div>`;
+  document.body.appendChild(d);
+}
+
+// ════════════════════════════════════════════════════════
 // RENDER: ANALYTICS
 // ════════════════════════════════════════════════════════
 function renderAnalytics(){
@@ -3821,6 +4320,7 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPro
 // INIT
 // ════════════════════════════════════════════════════════
 load();
+checkInvoiceAutoClose();
 renderBankEmojiGrid();
 renderHome();
 document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
